@@ -1,0 +1,49 @@
+---
+import Default from '@astrojs/starlight/components/ThemeProvider.astro';
+---
+
+<Default />
+
+{/*
+	Starlight themes via `data-theme` on <html>; shadcn themes via a `.dark` class.
+	Starlight's provider above sets `data-theme` in a render-blocking inline script,
+	so we mirror it for `.dark` here — also inline, also before first paint.
+
+	Without this the class is only added once the (deferred) ThemeSelect module runs,
+	so a palette containing shadcn's stock `.dark` block paints light for a frame.
+	With it, users can paste the output of https://ui.shadcn.com/create verbatim.
+
+	`ThemeSelect` keeps the class in sync afterwards when the theme is toggled.
+
+	The palette needs the same treatment for the same reason: it only reaches
+	<html> once the deferred module runs, so a non-default preset paints the
+	default one for a frame on every navigation.
+*/}
+<script is:inline>
+	(() => {
+		// Reading — and in blocked-storage modes even *touching* — `localStorage`
+		// throws. One helper keeps a throw from taking the rest of this script with
+		// it: losing a stored preference is survivable, losing `.dark` is not.
+		const read = (key) => {
+			try {
+				return localStorage.getItem(key);
+			} catch {
+				return null;
+			}
+		};
+
+		const theme =
+			read('starlight-theme') ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.classList.toggle('dark', theme !== 'light');
+
+		const palette = read('starlight-shadcn-palette');
+		if (palette) document.documentElement.dataset.palette = palette;
+
+		// Desktop sidebar collapse — set before paint so main padding does not
+		// jump once the deferred PageFrame module runs.
+		if (read('starlight-shadcn-sidebar-collapsed') === 'true') {
+			document.documentElement.setAttribute('data-sidebar-collapsed', '');
+		}
+	})();
+</script>

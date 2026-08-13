@@ -1,0 +1,202 @@
+---
+/**
+ * Renders ```mermaid code fences as diagrams themed from the site's shadcn
+ * tokens, re-rendering when the theme is toggled.
+ *
+ * Expressive Code claims every fence before a remark plugin registered by a
+ * Starlight plugin could reach it (Astro finalises `markdown` config before
+ * integrations added via `addIntegration` run), so this upgrades EC's rendered
+ * output instead. That needs no configuration from the consumer.
+ *
+ * `mermaid` is an optional peer dependency, imported only when a diagram is
+ * actually on the page. Without it the code block simply stays as it is.
+ */
+---
+
+<style is:global>
+	.shadcn-mermaid {
+		display: block;
+		margin-block: 1.5rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: calc(var(--radius) - 2px);
+		background-color: var(--muted);
+		overflow-x: auto;
+		text-align: center;
+	}
+
+	.shadcn-mermaid svg {
+		max-width: 100%;
+		height: auto;
+	}
+</style>
+
+<script>
+	const SELECTOR = 'pre[data-language="mermaid"]';
+
+	/** EC renders each source line as its own element, so join them back up. */
+	function readSource(pre: Element): string {
+		const lines = pre.querySelectorAll('.ec-line .code');
+		if (lines.length === 0) return pre.textContent ?? '';
+		return [...lines].map((line) => line.textContent ?? '').join('\n');
+	}
+
+	const canvas = document.createElement('canvas');
+	canvas.width = canvas.height = 1;
+	const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+	/** Resolve any CSS colour to sRGB channels via the canvas. */
+	function resolve(value: string): [number, number, number, number] {
+		if (!ctx) return [0, 0, 0, 1];
+		ctx.fillStyle = '#000';
+		ctx.fillStyle = value; // an unparseable value leaves the previous fill in place
+		ctx.clearRect(0, 0, 1, 1);
+		ctx.fillRect(0, 0, 1, 1);
+		const data = ctx.getImageData(0, 0, 1, 1).data;
+		return [data[0] ?? 0, data[1] ?? 0, data[2] ?? 0, (data[3] ?? 255) / 255];
+	}
+
+	/**
+	 * mermaid parses colours with khroma, which handles hex/rgb/hsl but NOT
+	 * `oklch()` — and every shadcn token is oklch. Convert to hex, compositing
+	 * any alpha over the page background so translucent tokens stay readable.
+	 */
+	function color(name: string, fallback: string, over: [number, number, number]): string {
+		const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+		const [r, g, b, a] = resolve(raw || fallback);
+		const channel = (c: number, base: number) => Math.round(c * a + base * (1 - a));
+		return (
+			'#' +
+			[channel(r, over[0]), channel(g, over[1]), channel(b, over[2])]
+				.map((v) => v.toString(16).padStart(2, '0'))
+				.join('')
+		);
+	}
+
+	function themeVariables() {
+		const raw = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+		const [br, bgc, bb] = resolve(raw || '#fff');
+		const base: [number, number, number] = [br, bgc, bb];
+
+		const background = color('--background', '#fff', base);
+		const foreground = color('--foreground', '#000', base);
+		const muted = color('--muted', '#eee', base);
+		const mutedForeground = color('--muted-foreground', '#666', base);
+		const border = color('--border', '#ccc', base);
+		const primary = color('--primary', '#000', base);
+		const primaryForeground = color('--primary-foreground', '#fff', base);
+
+		return {
+			darkMode: document.documentElement.dataset.theme === 'dark',
+			background: muted,
+			primaryColor: background,
+			primaryTextColor: foreground,
+			primaryBorderColor: border,
+			secondaryColor: muted,
+			secondaryTextColor: foreground,
+			secondaryBorderColor: border,
+			tertiaryColor: background,
+			tertiaryTextColor: foreground,
+			tertiaryBorderColor: border,
+			lineColor: mutedForeground,
+			textColor: foreground,
+			mainBkg: background,
+			nodeBorder: border,
+			nodeTextColor: foreground,
+			clusterBkg: muted,
+			clusterBorder: border,
+			titleColor: foreground,
+			edgeLabelBackground: muted,
+			labelBoxBkgColor: primary,
+			labelBoxBorderColor: primary,
+			labelTextColor: primaryForeground,
+			actorBkg: background,
+			actorBorder: border,
+			actorTextColor: foreground,
+			signalColor: mutedForeground,
+			signalTextColor: foreground,
+			noteBkgColor: muted,
+			noteTextColor: foreground,
+			noteBorderColor: border,
+		};
+	}
+
+	interface Diagram {
+		host: HTMLElement;
+		source: string;
+		original: Element;
+	}
+
+	const diagrams: Diagram[] = [];
+	let renderToken = 0;
+
+	async function renderAll() {
+		if (diagrams.length === 0) return;
+		const current = ++renderToken;
+
+		let mermaid;
+		try {
+			mermaid = (await import('mermaid')).default;
+			if (current !== renderToken) return;
+			mermaid.initialize({
+				startOnLoad: false,
+				securityLevel: 'strict',
+				theme: 'base',
+				fontFamily: getComputedStyle(document.documentElement).fontFamily,
+				themeVariables: themeVariables(),
+			});
+		} catch {
+			// `mermaid` not installed, or it rejected the palette. Either way the
+			// original code block is still on screen, so no content is lost.
+			return;
+		}
+
+		for (const [index, diagram] of diagrams.entries()) {
+			try {
+				const { svg } = await mermaid.render(`shadcn-mermaid-${index}-${current}`, diagram.source);
+				if (current !== renderToken) return;
+				diagram.host.innerHTML = svg;
+				diagram.original.setAttribute('hidden', '');
+			} catch {
+				// Invalid diagram: drop our container and restore the source so the
+				// author can see what failed rather than a blank space.
+				diagram.host.remove();
+				diagram.original.removeAttribute('hidden');
+			}
+		}
+	}
+
+	function collect() {
+		for (const pre of document.querySelectorAll(SELECTOR)) {
+			// EC wraps the <pre> in <figure class="frame"> inside .expressive-code.
+			const original = pre.closest('.expressive-code') ?? pre;
+			if (original.previousElementSibling?.classList.contains('shadcn-mermaid')) continue;
+
+			const source = readSource(pre).trim();
+			if (!source) continue;
+
+			const host = document.createElement('div');
+			host.className = 'shadcn-mermaid not-content';
+			original.before(host);
+			diagrams.push({ host, source, original });
+		}
+	}
+
+	function start() {
+		collect();
+		void renderAll();
+
+		// Starlight flips `data-theme` on <html>; re-render so diagrams follow the
+		// palette instead of keeping first-render colours baked in.
+		new MutationObserver(() => void renderAll()).observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ['data-theme', 'class'],
+		});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', start, { once: true });
+	} else {
+		start();
+	}
+</script>

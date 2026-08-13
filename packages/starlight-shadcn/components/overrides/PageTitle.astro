@@ -1,0 +1,62 @@
+---
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+import PageActions from '../PageActions.astro';
+
+const { entry } = Astro.locals.starlightRoute;
+const { description } = entry.data;
+---
+
+<div class="shadcn-page-title">
+	<div class="page-title-header">
+		<div class="page-title-heading"><Default /></div>
+		<PageActions />
+	</div>
+	{description && <p class="page-description">{description}</p>}
+</div>
+
+<style>
+	@layer starlight-shadcn {
+		.shadcn-page-title {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.page-title-header {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.75rem;
+		}
+
+		@media (min-width: 50rem) {
+			.page-title-header {
+				flex-direction: row;
+				align-items: flex-start;
+				justify-content: space-between;
+				gap: 1rem;
+			}
+		}
+
+		.page-title-heading {
+			min-width: 0;
+			flex: 1;
+		}
+
+		.shadcn-page-title :global(h1) {
+			font-size: clamp(1.75rem, 3vw, 2.25rem);
+			font-weight: 700;
+			letter-spacing: var(--sl-letter-spacing, -0.03em);
+			line-height: 1.15;
+			color: var(--foreground);
+		}
+
+		.page-description {
+			margin: 0;
+			color: var(--muted-foreground);
+			font-size: 1rem;
+			line-height: 1.6;
+			text-wrap: balance;
+		}
+	}
+</style>

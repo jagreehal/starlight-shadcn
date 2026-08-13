@@ -1,0 +1,9 @@
+---
+// Pass-through: the fork added a `.social-icons` wrapper that both call sites
+// already provide — upstream `MobileMenuFooter` wraps it, and our `Header`
+// places it in `.header-nav` — so it rendered `.social-icons > .social-icons`.
+// Both containers are styled in `styles/components.css`.
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+---
+
+<Default />

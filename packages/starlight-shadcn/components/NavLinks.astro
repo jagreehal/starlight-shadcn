@@ -1,0 +1,57 @@
+---
+import { config } from 'virtual:starlight-shadcn/config';
+
+const { locale } = Astro.locals.starlightRoute;
+
+/* Forgetting the site `base` is the most common way these links 404 on a
+   project page, so root-relative hrefs get it prepended. Absolute URLs and
+   anything non-rooted (`mailto:`, `https://…`) are left alone. */
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (href: string) =>
+	base && href.startsWith('/') && href !== base && !href.startsWith(`${base}/`)
+		? base + href
+		: href;
+
+const trimTrailing = (path: string) => path.replace(/\/$/, '');
+const current = trimTrailing(Astro.url.pathname);
+
+const links = config.navLinks.map((link) => {
+	const href = withBase(link.href);
+	// A nav link usually points at a landing page inside the section it stands
+	// for, so matching `href` alone leaves nothing active while browsing the
+	// rest of that section. `activeMatch` is the section prefix.
+	const match = trimTrailing(withBase(link.activeMatch ?? link.href));
+	return {
+		href,
+		label: (locale && link.translations?.[locale]) || link.label,
+		// `aria-current="true"` rather than `"page"` — this is rarely the exact page.
+		isCurrent: match !== '' && (current === match || current.startsWith(`${match}/`)),
+	};
+});
+---
+
+{
+	links.map((link) => (
+		<a class="nav-link" href={link.href} aria-current={link.isCurrent ? 'true' : undefined}>
+			{link.label}
+		</a>
+	))
+}
+
+<style>
+	@layer starlight-shadcn {
+		.nav-link {
+			color: var(--muted-foreground);
+			font-size: var(--sl-text-sm);
+			font-weight: 500;
+			text-decoration: none;
+			white-space: nowrap;
+			transition: color 0.15s;
+		}
+
+		.nav-link:hover,
+		.nav-link[aria-current] {
+			color: var(--foreground);
+		}
+	}
+</style>

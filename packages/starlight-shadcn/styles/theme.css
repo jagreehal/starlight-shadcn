@@ -1,0 +1,125 @@
+/* Scroll-fade custom properties need registered syntax to interpolate. */
+@property --scroll-fade-t {
+	syntax: '<length>';
+	inherits: false;
+	initial-value: 0px;
+}
+
+@property --scroll-fade-b {
+	syntax: '<length>';
+	inherits: false;
+	initial-value: 0px;
+}
+
+@layer starlight-shadcn {
+	:root {
+		--sl-color-text-accent: var(--primary);
+		--sl-color-banner-text: var(--foreground);
+		--sl-color-bg: var(--background);
+		--sl-color-text: var(--foreground);
+		/* Starlight's mid-tone accent: focus borders, `accent-color` on form
+		   controls, default Badge border. Must be a visible brand colour — a
+		   hairline like `--border` leaves focus indicators invisible.
+		   `low`/`high` are the surface and the readable-text ends of that ramp;
+		   flattening them to `--muted`/`--foreground` made the default Badge a
+		   grey or black chip sitting beside four coloured ones. */
+		--sl-color-accent-low: color-mix(in oklab, var(--primary) 35%, var(--background));
+		--sl-color-accent: var(--primary);
+		--sl-color-accent-high: color-mix(in oklab, var(--primary) 70%, var(--foreground));
+		--sl-color-gray-1: var(--foreground);
+		--sl-color-gray-2: color-mix(in oklab, var(--foreground) 85%, var(--background));
+		--sl-color-gray-3: var(--muted-foreground);
+		--sl-color-gray-4: color-mix(in oklab, var(--muted-foreground) 80%, var(--background));
+		--sl-color-gray-5: var(--border);
+		--sl-color-gray-6: var(--muted);
+		--sl-color-gray-7: var(--card);
+
+		/* Starlight's `white`/`black` are "most contrast" and "page ground", not
+		   literal colours — they flip with the theme. Its content components lean
+		   on them for headings and surfaces, so they have to be mapped or Card,
+		   Aside and Steps render against hard-coded hsl(). */
+		--sl-color-white: var(--foreground);
+		--sl-color-black: var(--background);
+		--sl-color-text-invert: var(--primary-foreground);
+		--sl-color-hairline: var(--border);
+		--sl-color-hairline-light: var(--border);
+		--sl-color-hairline-shade: var(--border);
+
+		/*
+		 * The semantic ramps (blue = note, orange = caution, red = danger) are
+		 * deliberately NOT remapped. Starlight already tunes three lightness stops
+		 * per hue and swaps their roles between light and dark; anything derived
+		 * from shadcn tokens here came out worse. Retune with `--sl-hue-blue` etc.
+		 *
+		 * They must not be sourced from `--chart-*` either: those are categorical
+		 * series colours, and plenty of shadcn palettes (including this repo's) set
+		 * them greyscale, which leaves every aside and badge the same colour.
+		 */
+
+		--sl-color-backdrop-overlay: color-mix(in oklab, var(--background) 80%, transparent);
+
+		/* Starlight's shadows are opaque black; shadcn's are tinted and lighter.
+		   tweakcn/create may export `--shadow-*`; those win when present. */
+		--sl-shadow-sm: var(
+			--shadow-sm,
+			var(--shadow, 0 1px 2px 0 color-mix(in oklab, var(--foreground) 8%, transparent))
+		);
+		--sl-shadow-md: var(
+			--shadow-md,
+			0 4px 6px -1px color-mix(in oklab, var(--foreground) 8%, transparent),
+			0 2px 4px -2px color-mix(in oklab, var(--foreground) 6%, transparent)
+		);
+		--sl-shadow-lg: var(
+			--shadow-lg,
+			0 10px 15px -3px color-mix(in oklab, var(--foreground) 8%, transparent),
+			0 4px 6px -4px color-mix(in oklab, var(--foreground) 6%, transparent)
+		);
+
+		/* Pasted `--font-sans` / `--font-mono` from a generator always win.
+		   `--font-geist` is the plugin fallback (Geist via styles/fonts.css). */
+		--sl-font: var(--font-sans, var(--font-geist), ui-sans-serif, system-ui, sans-serif);
+		--sl-font-mono: var(
+			--font-mono,
+			var(--font-geist-mono),
+			ui-monospace,
+			SFMono-Regular,
+			Menlo,
+			Monaco,
+			Consolas,
+			monospace
+		);
+		--sl-letter-spacing: var(--tracking-tight, var(--tracking-normal, -0.02em));
+
+		--sl-content-width: 46rem;
+		--sl-sidebar-width: 18rem;
+		--sl-nav-height: 3.5rem;
+		--sl-nav-pad-x: 1rem;
+		--sl-nav-gap: 1rem;
+		--sl-menu-button-size: 2rem;
+
+		/* Layout geometry — sticky rows track banner + header so sidebar/TOC
+		   align under chrome. `--sl-sidebar-col` shrinks to 0px when collapsed. */
+		--sl-banner-height: 0px;
+		--sl-docs-row-1: var(--sl-banner-height);
+		--sl-docs-row-2: calc(var(--sl-docs-row-1) + var(--sl-nav-height));
+		--sl-sidebar-col: var(--sl-sidebar-width);
+
+		--radius: 0.625rem;
+		--spacing: 0.25rem;
+	}
+
+	/* Desktop collapse: shrink the left rail track used by our chrome. */
+	html[data-has-sidebar][data-sidebar-collapsed] {
+		--sl-sidebar-col: 0px;
+	}
+
+	::backdrop {
+		--sl-color-backdrop-overlay: color-mix(in oklab, var(--background) 80%, transparent);
+	}
+}
+
+/* Unlayered so it beats Starlight Page.astro's unlayered
+   `--sl-content-inline-start: var(--sl-sidebar-width)`. */
+html[data-has-sidebar][data-sidebar-collapsed] {
+	--sl-content-inline-start: 0px;
+}

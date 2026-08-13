@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build docs
+        run: pnpm build
+
+      - name: Theme regression gate
+        run: pnpm check
+
+      - name: Install Playwright Chromium
+        run: pnpm test:install
+
+      - name: Behaviour regression tests
+        run: pnpm test
+
+      # Consuming the theme through the workspace symlink hides anything the
+      # published tarball leaves out — a stray file shipped this way once.
+      # Install it the way npm users will.
+      - name: Tarball install gate
+        run: |
+          pnpm --filter starlight-shadcn pack --pack-destination "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP"
+          mkdir consumer && cd consumer
+          npm init -y > /dev/null
+          npm pkg set type=module
+          npm install astro@^7 @astrojs/starlight ../starlight-shadcn-*.tgz
+          mkdir -p src/content/docs
+          printf -- '---\ntitle: Hello\n---\n\nBody.\n' > src/content/docs/index.md
+          cat > src/content.config.ts <<'EOF'
+          import { defineCollection } from 'astro:content';
+          import { docsLoader } from '@astrojs/starlight/loaders';
+          import { docsSchema } from '@astrojs/starlight/schema';
+          export const collections = {
+            docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
+          };
+          EOF
+          cat > astro.config.mjs <<'EOF'
+          import { defineConfig } from 'astro/config';
+          import starlight from '@astrojs/starlight';
+          import starlightShadcn from 'starlight-shadcn';
+
+          export default defineConfig({
+            integrations: [starlight({ title: 'Consumer', plugins: [starlightShadcn()] })],
+          });
+          EOF
+          npx astro build
+          test -f dist/index.html
+
+  # Baselines are committed per platform (`{platform}` in `snapshotPathTemplate`).
+  # Only macOS baselines exist, so the visual job runs there — a Linux runner
+  # would find no snapshot for its platform and write one instead of comparing.
+  visual:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm test:install
+
+      - name: Build docs
+        run: pnpm build
+
+      - name: Visual regression tests
+        run: pnpm test:visual
+
+      - name: Upload diff report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: docs/playwright-report/
+          retention-days: 7

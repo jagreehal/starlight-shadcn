@@ -1,0 +1,86 @@
+---
+title: Components
+description: shadcn React Aria components inside Starlight MDX.
+---
+
+import { Button } from '@/components/ui/button';
+import { LinkButton } from '@/components/ui/button';
+import Preview from 'starlight-shadcn/components/Preview.astro';
+import ButtonDemo from '@/components/demos/button-demo';
+import buttonDemoSource from '@/components/demos/button-demo?raw';
+import FormControlsDemo from '@/components/demos/form-controls-demo';
+import formControlsDemoSource from '@/components/demos/form-controls-demo?raw';
+import DialogDemo from '@/components/demos/dialog-demo';
+import dialogDemoSource from '@/components/demos/dialog-demo?raw';
+
+Use shadcn components as React islands anywhere in your MDX content.
+
+## Live preview
+
+`<Preview>` renders a component beside its source. Importing the source with Vite's `?raw` means the demo and the code can never drift apart.
+
+<Preview code={buttonDemoSource} lang="tsx">
+  <ButtonDemo client:load />
+</Preview>
+
+## Button variants
+
+{/* No `not-content` needed: the theme clears Starlight's prose rhythm inside
+    flex/grid containers, so this row stays aligned out of the box. */}
+<div class="flex flex-wrap gap-2">
+  <Button client:load variant="default">Default</Button>
+  <Button client:load variant="secondary">Secondary</Button>
+  <Button client:load variant="outline">Outline</Button>
+  <Button client:load variant="ghost">Ghost</Button>
+  <Button client:load variant="destructive">Destructive</Button>
+</div>
+
+## Link button
+
+<div class="not-content">
+  <LinkButton client:load href="/starlight-shadcn/guides/getting-started/" variant="outline">
+    Getting started
+  </LinkButton>
+</div>
+
+## Curated React Aria set
+
+The docs now include a curated quality-first set of shadcn React Aria components (`input`, `textarea`, `checkbox`, `switch`, `select`, `dialog`, `popover`, `tooltip`, `tabs`) so you can compose richer flows without importing the full registry at once.
+
+### Theme presets
+
+Use the header selector to switch between `Default`, `Sunset`, and `Forest` presets. The presets intentionally remap only emphasis tokens (`--primary`, `--accent`, `--ring`, and sidebar emphasis) so component shape and spacing stay stable while mood changes.
+
+### Form controls
+
+<Preview code={formControlsDemoSource} lang="tsx">
+  <FormControlsDemo client:load />
+</Preview>
+
+Expected interaction quality:
+
+- Keyboard focus ring is visible on `Input`, `Textarea`, `Select`, `Checkbox`, and `Switch`.
+- `Select` opens, navigates, and selects via keyboard.
+- `Checkbox` and `Switch` show clear selected/unselected states.
+
+### Dialog
+
+<Preview code={dialogDemoSource} lang="tsx">
+  <DialogDemo client:load />
+</Preview>
+
+Expected interaction quality:
+
+- Dialog opens with keyboard and mouse.
+- Focus remains trapped while open.
+- Escape key and close action both dismiss cleanly.
+
+### Optional `add --all` gate
+
+If you want full registry coverage later, treat it as a gated follow-up:
+
+1. Run `pnpm dlx shadcn@latest add --all --yes`.
+2. Keep docs navigation curated (do not expose every generated component page immediately).
+3. Promote components into docs only after parity QA in `astro-default` preset plus light/dark/mobile checks.
+
+These components use [React Aria](https://react-spectrum.adobe.com/react-aria/) primitives with shadcn styling — the same stack from `pnpm dlx shadcn@latest init --base aria --template astro`.

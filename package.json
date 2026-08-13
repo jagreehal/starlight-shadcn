@@ -1,0 +1,41 @@
+{
+  "name": "starlight-shadcn-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "description": "shadcn + React Aria theme for Starlight on Astro 7.",
+  "license": "MIT",
+  "author": "jagreehal",
+  "homepage": "https://github.com/jagreehal/starlight-shadcn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jagreehal/starlight-shadcn.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jagreehal/starlight-shadcn/issues"
+  },
+  "scripts": {
+    "dev": "pnpm --filter starlight-shadcn-docs dev",
+    "build": "pnpm --filter starlight-shadcn-docs build",
+    "preview": "pnpm --filter starlight-shadcn-docs preview",
+    "typecheck": "pnpm --filter starlight-shadcn-docs typecheck",
+    "lint": "pnpm --filter starlight-shadcn-docs lint",
+    "format": "pnpm --filter starlight-shadcn-docs format",
+    "check": "node scripts/prerelease-check.mjs",
+    "prerelease": "pnpm typecheck && pnpm lint && pnpm build && pnpm check",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm prerelease && changeset publish",
+    "test": "pnpm --filter starlight-shadcn-docs test",
+    "test:visual": "pnpm --filter starlight-shadcn-docs test:visual",
+    "test:update": "pnpm --filter starlight-shadcn-docs test:update",
+    "test:install": "pnpm --filter starlight-shadcn-docs test:install"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.1",
+    "typescript": "~6"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

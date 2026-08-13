@@ -1,0 +1,122 @@
+@layer starlight-shadcn {
+	.header {
+		border-bottom: none;
+		background-color: color-mix(in oklab, var(--background) 92%, transparent);
+		backdrop-filter: blur(12px);
+	}
+
+	.hero .actions a,
+	.pagination-links a {
+		border-radius: calc(var(--radius) - 2px);
+		font-weight: 500;
+	}
+
+	.hero .actions a[data-variant='default'],
+	.hero .actions a[data-variant='primary'],
+	.pagination-links a {
+		background-color: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	.hero .actions a[data-variant='secondary'] {
+		background-color: var(--secondary);
+		color: var(--secondary-foreground);
+	}
+
+	.hero .actions a[data-variant='outline'] {
+		background-color: var(--background);
+		color: var(--foreground);
+		border: 1px solid var(--border);
+	}
+
+	.hero .actions a[data-variant='ghost'],
+	.hero .actions a[data-variant='minimal'] {
+		background-color: transparent;
+		color: var(--foreground);
+	}
+
+	.hero .actions a[data-variant='destructive'] {
+		background-color: color-mix(in oklab, var(--destructive) 15%, transparent);
+		color: var(--destructive);
+	}
+
+	.hero .actions a:hover,
+	.pagination-links a:hover {
+		filter: brightness(0.96);
+	}
+
+	.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+		font-weight: 600;
+		letter-spacing: var(--sl-letter-spacing, -0.02em);
+	}
+
+	/* Tailwind preflight resets `text-decoration` and list markers — restore both
+	   inside prose. `:where(.not-content *)` matches Starlight so Cards/LinkCards
+	   keep their own styling. */
+	.sl-markdown-content a:not(:where(.not-content *)) {
+		color: var(--primary);
+		text-decoration-line: underline;
+		text-underline-offset: 0.2em;
+		text-decoration-color: color-mix(in oklab, var(--primary) 40%, transparent);
+	}
+
+	.sl-markdown-content a:hover:not(:where(.not-content *)) {
+		text-decoration-color: var(--primary);
+	}
+
+	/* `.sl-steps` draws its own numbered bullets and sets `list-style: none`;
+	   reviving the native marker here would double every step number. */
+	.sl-markdown-content :is(ul, ol):not(.sl-steps):not(:where(.not-content *)) {
+		list-style: revert;
+		padding-inline-start: 1.5rem;
+	}
+
+	/*
+	 * Starlight's prose rhythm rule is a *descendant* selector:
+	 *
+	 *   .sl-markdown-content :not(a, strong, …) + :not(a, strong, …)
+	 *
+	 * so it puts `margin-top` on any element following a sibling at ANY depth —
+	 * including inside a layout container you wrote yourself. In a flex or grid
+	 * row that drops every child after the first, breaking the alignment, which
+	 * is why Starlight users end up hand-writing `.my-row > * { margin-top: 0 }`.
+	 *
+	 * Flex and grid containers space themselves with `gap`, so clear it for them.
+	 * This theme requires Tailwind, so the display utilities are the reliable
+	 * hook. For a container styled some other way, add `class="not-content"`.
+	 *
+	 * The second selector is not redundant: Starlight has a companion rule that
+	 * reaches *through* `astro-island`/`astro-slot` to the first child inside.
+	 * Those wrappers are `display: contents`, so the real flex item is the
+	 * element one level down and clearing the wrapper's margin does nothing.
+	 */
+	.sl-markdown-content
+		:is(.flex, .inline-flex, .grid, .inline-grid):not(:where(.not-content, .not-content *))
+		> *,
+	.sl-markdown-content
+		:is(.flex, .inline-flex, .grid, .inline-grid):not(:where(.not-content, .not-content *))
+		> :is(astro-island, astro-slot)
+		> * {
+		margin-top: 0;
+	}
+
+	.sl-markdown-content :not(pre) > code {
+		background-color: var(--muted);
+		border: 1px solid var(--border);
+		border-radius: calc(var(--radius) - 4px);
+		padding: 0.125rem 0.375rem;
+		font-size: 0.875em;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+}

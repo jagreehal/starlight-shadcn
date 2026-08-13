@@ -1,0 +1,41 @@
+---
+import { config } from 'virtual:starlight-shadcn/config';
+import Default from '@astrojs/starlight/components/Sidebar.astro';
+import NavLinks from '../NavLinks.astro';
+---
+
+{/* The sidebar pane doubles as the mobile menu, so the header's nav links are
+    rendered here below 50rem — the same breakpoint at which `Header` drops
+    them. Above it this is the desktop sidebar and they would be duplicates. */}
+{
+	config.navLinks.length > 0 && (
+		<nav class="mobile-nav-links" aria-label={Astro.locals.t('starlightShadcn.headerNav')}>
+			<NavLinks />
+		</nav>
+	)
+}
+
+<Default />
+
+<style>
+	@layer starlight-shadcn {
+		.mobile-nav-links {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+			padding-block-end: 1rem;
+			margin-block-end: 1rem;
+			border-block-end: 1px solid var(--border);
+		}
+
+		.mobile-nav-links :global(.nav-link) {
+			font-size: var(--sl-text-base);
+		}
+
+		@media (min-width: 50rem) {
+			.mobile-nav-links {
+				display: none;
+			}
+		}
+	}
+</style>

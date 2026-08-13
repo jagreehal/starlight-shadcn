@@ -1,0 +1,91 @@
+---
+import context from 'virtual:starlight/project-context';
+import config from 'virtual:starlight/user-config';
+import MenuSelect from '../MenuSelect.astro';
+
+/**
+ * Build the current page path remapped into another locale.
+ * Mirrors Starlight's `localizedUrl` without importing a non-exported util.
+ */
+function localizedPathname(locale: string | undefined): string {
+	const url = new URL(Astro.url);
+	if (!config.locales) return url.pathname;
+
+	const target = locale === 'root' ? '' : (locale ?? '');
+	const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+	const hasBase = base && url.pathname.startsWith(base);
+	if (hasBase) url.pathname = url.pathname.slice(base.length) || '/';
+
+	const segments = url.pathname.split('/');
+	const baseSegment = segments[1] ?? '';
+	const htmlExt = '.html';
+	const isRootHtml = baseSegment.endsWith(htmlExt);
+	const baseSlug = isRootHtml ? baseSegment.slice(0, -htmlExt.length) : baseSegment;
+
+	if (baseSlug && baseSlug in config.locales) {
+		if (target) {
+			url.pathname = url.pathname.replace(baseSlug, target);
+		} else if (isRootHtml) {
+			url.pathname = '/index.html';
+		} else {
+			url.pathname = url.pathname.replace('/' + baseSlug, '') || '/';
+		}
+	} else if (target) {
+		if (baseSegment === 'index.html') {
+			url.pathname = '/' + target + '.html';
+		} else {
+			url.pathname = '/' + target + url.pathname;
+		}
+	}
+
+	if (hasBase) url.pathname = base + url.pathname;
+	if (context.trailingSlash === 'never') {
+		url.pathname = url.pathname.replace(/\/$/, '') || '/';
+	}
+	return url.pathname;
+}
+---
+
+{
+	config.isMultilingual && (
+		<starlight-shadcn-lang-select>
+			<MenuSelect
+				label={Astro.locals.t('languageSelect.accessibleLabel')}
+				width="7em"
+				options={Object.entries(config.locales!).map(([code, locale]) => ({
+					value: localizedPathname(code),
+					selected: code === Astro.locals.starlightRoute.locale,
+					label: locale!.label,
+				}))}
+			/>
+		</starlight-shadcn-lang-select>
+	)
+}
+
+<script>
+	if (!customElements.get('starlight-shadcn-lang-select')) {
+		customElements.define(
+			'starlight-shadcn-lang-select',
+			class StarlightShadcnLanguageSelect extends HTMLElement {
+				constructor() {
+					super();
+					this.addEventListener('menu-select-change', ((event: CustomEvent<{ value: string }>) => {
+						window.location.pathname = event.detail.value;
+					}) as EventListener);
+					window.addEventListener('pageshow', (event) => {
+						if (!event.persisted) return;
+						const selected = this.querySelector('[aria-selected="true"]');
+						const label = selected?.querySelector('span')?.textContent;
+						const value = (selected as HTMLElement | null)?.dataset.value;
+						const picker = this.querySelector('starlight-shadcn-menu-select');
+						const valueEl = picker?.querySelector('.menu-select-value');
+						if (picker && value) {
+							picker.setAttribute('data-value', value);
+							if (valueEl && label) valueEl.textContent = label;
+						}
+					});
+				}
+			},
+		);
+	}
+</script>

@@ -1,0 +1,28 @@
+---
+title: Introduction
+description: shadcn + React Aria styling for Starlight — by jagreehal.
+---
+
+import { Button } from '@/components/ui/button';
+import { ALL_COMPONENT_OVERRIDES } from 'starlight-shadcn';
+
+**starlight-shadcn** is a complete Starlight theme by [jagreehal](https://github.com/jagreehal) that maps [shadcn/ui](https://ui.shadcn.com) **aria-vega** tokens onto every overridable Starlight component.
+
+## Highlights
+
+- **{ALL_COMPONENT_OVERRIDES.length} component overrides** — header, sidebar, search, hero, footer, TOC, and more
+- **Bring your own shadcn tokens** — `--background`, `--primary`, `--sidebar-*` and the rest map onto Starlight's `--sl-*` variables, so a palette from [shadcn/create](https://ui.shadcn.com/create?base=aria), [tweakcn](https://tweakcn.com/) or [shadcn.studio](https://www.shadcn.studio/) restyles the site by pasting CSS
+- **React Aria islands** — use shadcn components in MDX via `@astrojs/react`
+- **Astro 7 + Starlight 0.41+**
+
+## Quick demo
+
+<div class="not-content">
+  <Button client:load>shadcn Button</Button>
+</div>
+
+## Explore
+
+- [All Overrides](/starlight-shadcn/showcase/overrides/) — full component list
+- [Getting Started](/starlight-shadcn/guides/getting-started/) — add to your project
+- [Plugin API](/starlight-shadcn/reference/plugin-api/) — configuration reference

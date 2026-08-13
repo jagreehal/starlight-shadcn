@@ -1,0 +1,57 @@
+---
+title: All Component Overrides
+description: Every Starlight component overridden by starlight-shadcn.
+---
+
+import { ALL_COMPONENT_OVERRIDES } from 'starlight-shadcn';
+
+**starlight-shadcn** overrides all {ALL_COMPONENT_OVERRIDES.length} overridable Starlight components. Each is styled with shadcn aria-vega design tokens.
+
+Use the [Kitchen Sink parity page](/starlight-shadcn/showcase/kitchen-sink/) for a single-page quality benchmark against Starlight's default examples, and use the header preset selector on [shadcn Components](/starlight-shadcn/showcase/components/) to preview alternate vibrant palettes.
+
+## Override list
+
+| Component | Role | Showcase |
+| --- | --- | --- |
+| `Head` | Page `<head>` tags | Every page |
+| `ThemeProvider` | Dark/light theme setup | [Theme toggle](/starlight-shadcn/showcase/components/) |
+| `SkipLink` | Accessibility skip link | Tab to page content |
+| `PageFrame` | Header + sidebar layout | Every page |
+| `MobileMenuToggle` | Mobile nav button | Resize to mobile |
+| `TwoColumnContent` | Main + TOC columns | This page (right sidebar) |
+| `Header` | Top navigation bar | Every page |
+| `SiteTitle` | Logo / site name | Header |
+| `Search` | Pagefind search modal | Header search button |
+| `SocialIcons` | Social links | Header |
+| `ThemeSelect` | Light/dark toggle | Header |
+| `LanguageSelect` | Locale switcher | Multilingual sites |
+| `Sidebar` | Docs navigation | Left sidebar |
+| `MobileMenuFooter` | Mobile menu footer | Mobile menu |
+| `PageSidebar` | TOC container | Pages with headings |
+| `TableOfContents` | Desktop TOC | This page |
+| `MobileTableOfContents` | Mobile TOC dropdown | Mobile viewport |
+| `Banner` | Announcement banner | [Banner page](/starlight-shadcn/showcase/banner/) |
+| `ContentPanel` | Main content wrapper | Every docs page |
+| `PageTitle` | Page `<h1>` | Every docs page |
+| `FallbackContentNotice` | Untranslated content | Multilingual sites |
+| `DraftContentNotice` | Draft page warning | Draft page (dev only) |
+| `Hero` | Splash page hero | [Splash page](/starlight-shadcn/showcase/splash/) |
+| `MarkdownContent` | Prose styling | [Typography](/starlight-shadcn/showcase/typography/) |
+| `Footer` | Page footer | [Footer page](/starlight-shadcn/showcase/footer/) |
+| `LastUpdated` | Last updated date | [Footer page](/starlight-shadcn/showcase/footer/) |
+| `Pagination` | Prev/next links | [Footer page](/starlight-shadcn/showcase/footer/) |
+| `EditLink` | Edit on GitHub link | [Footer page](/starlight-shadcn/showcase/footer/) |
+
+## Opt out of specific overrides
+
+```js
+starlightShadcn({
+  overrides: ['Header', 'ThemeSelect', 'Hero'], // only these
+})
+```
+
+Omit `overrides` to replace all {ALL_COMPONENT_OVERRIDES.length} components (default).
+
+## Author
+
+Created by [jagreehal](https://github.com/jagreehal).

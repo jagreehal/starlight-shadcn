@@ -1,0 +1,233 @@
+---
+import Default from '@astrojs/starlight/components/TableOfContents.astro';
+import { config } from 'virtual:starlight-shadcn/config';
+---
+
+{
+	config.clerkToc ? (
+		<starlight-shadcn-clerk-toc class="shadcn-toc shadcn-toc--clerk">
+			<Default />
+			<div class="shadcn-toc-track" data-toc-track aria-hidden="true" />
+		</starlight-shadcn-clerk-toc>
+	) : (
+		<div class="shadcn-toc">
+			<Default />
+		</div>
+	)
+}
+
+{/* Scrollspy dead zone. Starlight activates a heading when it crosses a 53px
+    band near the top of the viewport. A final section shorter than the
+    remaining scroll distance never reaches that band, so the reader sits at the
+    bottom of the page with the *previous* heading still highlighted. */}
+<script>
+	const TAGS = ['starlight-toc', 'mobile-starlight-toc'];
+	// Sub-pixel zoom and fractional device ratios keep the sum a hair short.
+	const BOTTOM_EPSILON = 2;
+
+	function atBottom() {
+		const doc = document.documentElement;
+		return window.innerHeight + window.scrollY >= doc.scrollHeight - BOTTOM_EPSILON;
+	}
+
+	/**
+	 * Assign through the element's own `current` setter rather than writing
+	 * `aria-current`: the setter clears Starlight's previously marked link and
+	 * updates its internal pointer (and the mobile TOC's label). Setting the
+	 * attribute directly leaves that pointer stale and two links marked current.
+	 */
+	function selectLast(toc: Element) {
+		if (!atBottom()) return;
+		const links = toc.querySelectorAll<HTMLAnchorElement>('nav a[href^="#"]');
+		const last = links[links.length - 1];
+		// The setter no-ops when the link is already current, so re-asserting
+		// cannot loop against the MutationObserver below.
+		if (last) (toc as unknown as { current: HTMLAnchorElement }).current = last;
+	}
+
+	for (const tag of TAGS) {
+		// Independent per tag — a consumer may override away the mobile TOC, and
+		// waiting on both would strand the desktop one.
+		customElements.whenDefined(tag).then(() => {
+			const elements = [...document.querySelectorAll(tag)];
+			if (elements.length === 0) return;
+			const run = () => elements.forEach(selectLast);
+
+			addEventListener('scroll', run, { passive: true });
+			addEventListener('resize', run, { passive: true });
+
+			/* IntersectionObserver callbacks are delivered after scroll events and
+			   after rAF, so Starlight's observer would otherwise overwrite us on the
+			   same frame. Correcting on the resulting mutation is what makes this
+			   stick. */
+			for (const toc of elements) {
+				new MutationObserver(run).observe(toc, {
+					subtree: true,
+					attributes: true,
+					attributeFilter: ['aria-current'],
+				});
+			}
+
+			run();
+		});
+	}
+</script>
+
+{
+	config.clerkToc && (
+		<script>
+			const BASE = 8;
+			/* Upstream indents each nested level by `1rem` (`padding-inline:
+			   calc(1rem * var(--depth) + …)`). The rail has to step by the same
+			   amount or it drifts away from the labels it is meant to track. */
+			const STEP = 16;
+			/* `linkDepth` counts from 1, and Starlight's first list level (h2) is
+			   upstream's `--depth: 0`, which lands on 3. */
+			const TOP_LEVEL_DEPTH = 3;
+
+			function lineOffset(depth: number) {
+				return BASE + Math.max(0, depth - TOP_LEVEL_DEPTH) * STEP;
+			}
+
+			function linkDepth(link: HTMLElement) {
+				let depth = 1;
+				let node: HTMLElement | null = link.parentElement;
+				while (node && !node.matches('starlight-toc')) {
+					if (node.matches('ul')) depth += 1;
+					node = node.parentElement;
+				}
+				// Starlight's first list level is h2 → depth 2.
+				return depth + 1;
+			}
+
+			class StarlightShadcnClerkToc extends HTMLElement {
+				#ro: ResizeObserver | null = null;
+				#mo: MutationObserver | null = null;
+				#positions: [top: number, bottom: number][] = [];
+
+				connectedCallback() {
+					const toc = this.querySelector('starlight-toc');
+					const track = this.querySelector<HTMLElement>('[data-toc-track]');
+					if (!toc || !track) return;
+
+					const rebuild = () => this.#rebuild(toc, track);
+					const sync = () => this.#syncActive(toc, track);
+
+					this.#ro = new ResizeObserver(rebuild);
+					this.#ro.observe(toc);
+					rebuild();
+
+					this.#mo = new MutationObserver(sync);
+					this.#mo.observe(toc, {
+						subtree: true,
+						attributes: true,
+						attributeFilter: ['aria-current'],
+					});
+					sync();
+				}
+
+				disconnectedCallback() {
+					this.#ro?.disconnect();
+					this.#mo?.disconnect();
+				}
+
+				#rebuild(toc: HTMLElement, track: HTMLElement) {
+					const links = [...toc.querySelectorAll<HTMLElement>('nav a[href^="#"]')];
+					if (links.length === 0) {
+						track.replaceChildren();
+						this.#positions = [];
+						return;
+					}
+
+					let width = 0;
+					let height = 0;
+					let d = '';
+					const positions: [top: number, bottom: number, x: number][] = [];
+
+					links.forEach((link, i) => {
+						const styles = getComputedStyle(link);
+						const x = lineOffset(linkDepth(link)) + 0.5;
+						const top = link.offsetTop + parseFloat(styles.paddingTop);
+						const bottom = link.offsetTop + link.clientHeight - parseFloat(styles.paddingBottom);
+						width = Math.max(x + 8, width);
+						height = Math.max(height, bottom);
+
+						if (i === 0) {
+							d += `M${x} ${top} L${x} ${bottom}`;
+						} else {
+							const [, upperBottom, upperX] = positions[i - 1]!;
+							const dx = x - upperX;
+							if (dx === 0) {
+								d += ` L${x} ${top} L${x} ${bottom}`;
+							} else {
+								/* Step across the indent as a rounded staircase. Joining the two
+								   levels with a straight line instead spans the full indent in
+								   the ~4px between items, which renders as a near-horizontal
+								   dash and reads as a glitch rather than as structure. */
+								const gap = top - upperBottom;
+								const dir = Math.sign(dx);
+								const r = Math.max(0, Math.min(6, Math.abs(dx) / 2, gap / 2));
+								const midY = upperBottom + gap / 2;
+								d +=
+									` L${upperX} ${midY - r}` +
+									` Q${upperX} ${midY} ${upperX + dir * r} ${midY}` +
+									` L${x - dir * r} ${midY}` +
+									` Q${x} ${midY} ${x} ${midY + r}` +
+									` L${x} ${bottom}`;
+							}
+						}
+						positions.push([top, bottom, x]);
+					});
+
+					this.#positions = positions.map(([top, bottom]) => [top, bottom]);
+
+					track.style.width = `${width}px`;
+					track.style.height = `${height}px`;
+					track.replaceChildren();
+
+					const ns = 'http://www.w3.org/2000/svg';
+					const makeSvg = (className: string) => {
+						const svg = document.createElementNS(ns, 'svg');
+						svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+						svg.setAttribute('class', className);
+						svg.style.width = `${width}px`;
+						svg.style.height = `${height}px`;
+						const path = document.createElementNS(ns, 'path');
+						path.setAttribute('d', d);
+						path.setAttribute('fill', 'none');
+						path.setAttribute('stroke-width', '1');
+						path.setAttribute('stroke-linecap', 'round');
+						path.setAttribute('stroke-linejoin', 'round');
+						svg.append(path);
+						return svg;
+					};
+
+					track.append(makeSvg('shadcn-toc-track__rail'), makeSvg('shadcn-toc-track__thumb'));
+					this.#syncActive(toc, track);
+				}
+
+				#syncActive(toc: HTMLElement, track: HTMLElement) {
+					const links = [...toc.querySelectorAll<HTMLElement>('nav a[href^="#"]')];
+					const activeIdx = links.flatMap((link, i) =>
+						link.getAttribute('aria-current') === 'true' ? [i] : [],
+					);
+					const thumb = track.querySelector<SVGElement>('.shadcn-toc-track__thumb');
+					if (!thumb) return;
+					if (activeIdx.length === 0 || this.#positions.length === 0) {
+						thumb.style.setProperty('--shadcn-track-top', '0px');
+						thumb.style.setProperty('--shadcn-track-bottom', '0px');
+						return;
+					}
+					const start = this.#positions[activeIdx[0]!]!;
+					const end = this.#positions[activeIdx[activeIdx.length - 1]!]!;
+					thumb.style.setProperty('--shadcn-track-top', `${start[0]}px`);
+					thumb.style.setProperty('--shadcn-track-bottom', `${end[1]}px`);
+				}
+			}
+
+			if (!customElements.get('starlight-shadcn-clerk-toc')) {
+				customElements.define('starlight-shadcn-clerk-toc', StarlightShadcnClerkToc);
+			}
+		</script>
+	)
+}

@@ -1,0 +1,16 @@
+---
+import '@astrojs/starlight/style/markdown.css';
+import Mermaid from '../Mermaid.astro';
+---
+
+<div class="sl-markdown-content shadcn-markdown"><slot /></div>
+
+<Mermaid />
+
+<style>
+	@layer starlight-shadcn {
+		.shadcn-markdown {
+			line-height: 1.75;
+		}
+	}
+</style>

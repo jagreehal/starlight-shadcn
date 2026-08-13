@@ -1,0 +1,183 @@
+---
+title: Getting Started
+description: Install starlight-shadcn by jagreehal.
+---
+
+import { PackageManagers } from 'starlight-package-managers';
+
+Build a working docs site in five copy-run-verify steps.
+
+## Preflight checklist
+
+- Node `>=22.12.0`
+- A package manager (`pnpm`, `npm`, or `yarn`)
+- An Astro project with a `src/styles/global.css` file
+- Starlight docs content under `src/content/docs/`
+
+## 1) Scaffold shadcn for Astro
+
+Run:
+
+<PackageManagers type="dlx" pkg="shadcn@latest" args="init --preset bIkfnvM --base aria --template astro" />
+
+Verify:
+
+- `components.json` exists at project root
+- `src/styles/global.css` is present
+- shadcn alias paths exist (`@/components`, `@/lib`, etc.)
+
+## 2) Install Starlight + theme dependencies
+
+Run:
+
+<PackageManagers pkg="@astrojs/starlight starlight-shadcn @astrojs/react" />
+
+<PackageManagers dev pkg="sharp @tailwindcss/vite tailwindcss" />
+
+Optional (diagrams):
+
+<PackageManagers dev pkg="mermaid" />
+
+Verify:
+
+- `starlight-shadcn` appears in `dependencies`
+- `@astrojs/react` and `@tailwindcss/vite` are installed
+
+## 3) Configure Astro
+
+```js
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+import react from '@astrojs/react';
+import tailwindcss from '@tailwindcss/vite';
+import starlightShadcn from 'starlight-shadcn';
+
+export default defineConfig({
+  vite: { plugins: [tailwindcss()] },
+  integrations: [
+    react(),
+    starlight({
+      title: 'My Docs',
+      customCss: ['./src/styles/global.css'],
+      plugins: [starlightShadcn()],
+    }),
+  ],
+});
+```
+
+Verify:
+
+- Starlight uses `plugins: [starlightShadcn()]`
+- `customCss` includes `./src/styles/global.css`
+- `react()` and `tailwindcss()` are both enabled
+
+## 4) Add or customize tokens
+
+The theme has no theming API of its own — it reads the standard shadcn CSS variables. Paste a palette from any generator that exports them into `global.css`:
+
+- [shadcn/create](https://ui.shadcn.com/create?base=aria) — canonical
+- [tweakcn](https://tweakcn.com/) — visual editor with a large preset catalogue
+- [shadcn.studio](https://www.shadcn.studio/) — theme browser
+
+```css
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  /* ...your light tokens */
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  /* ...your dark tokens */
+}
+```
+
+See [Theming](/starlight-shadcn/guides/theming/) for the full token contract, the sidebar palette, and the colour-format gotcha that breaks pastes from older generators.
+
+Verify:
+
+- Theme toggle updates both light and dark palettes correctly
+- No light-flash on first page paint when dark mode is selected
+
+Starlight tracks theme with `data-theme` on `<html>`, while shadcn uses `.dark`. `ThemeProvider` mirrors `.dark` during first paint, and `ThemeSelect` keeps it synced on toggle.
+
+## 5) Run and validate
+
+Run:
+
+```bash
+pnpm dev
+```
+
+Check:
+
+- Docs load at your local Starlight route
+- Header/Sidebar styles are themed
+- `showcase/components` renders interactive demos
+
+## Optional: Hero action variants schema
+
+```ts
+import { ExtendDocsSchema } from 'starlight-shadcn/schema';
+
+docsSchema({ extend: ExtendDocsSchema });
+```
+
+This adds hero variants: `default`, `secondary`, `outline`, `ghost`, `destructive`, `link`, plus aliases `primary` and `minimal`.
+
+## Troubleshooting
+
+### Theme looks unchanged
+
+- Confirm `customCss: ['./src/styles/global.css']` exists in Starlight config.
+- Confirm your token names match shadcn defaults (`--background`, `--foreground`, `--primary`, etc.).
+- Restart dev server after config changes.
+
+### Page is transparent with black text after pasting a theme
+
+Your tokens are bare channel triples (`--background: 0 0% 100%`), the Tailwind v3 convention. Wrap each value in a colour function — `hsl(0 0% 100%)`. See [Theming](/starlight-shadcn/guides/theming/#colour-format).
+
+### Search says it is unavailable
+
+Starlight search can be production-only in local dev. Build/preview to validate end-to-end search behavior.
+
+### Dark mode toggles but colors do not change
+
+- Ensure `.dark` token block exists in `global.css`.
+- Verify no downstream CSS overrides your token variables.
+
+### Mermaid blocks do not render
+
+- Install optional `mermaid` dependency.
+- Keep code fences marked as `mermaid`.
+
+## Customization guardrails
+
+Use these rules to customize safely while preserving official-quality behavior:
+
+- **Safe emphasis tokens:** `--primary`, `--accent`, `--ring`, `--destructive`
+- **Safe surface tokens:** `--background`, `--card`, `--popover`, `--muted`, `--border`, `--input`
+- **Sidebar coupling:** if you change emphasis tokens, keep sidebar pairs aligned:
+  - `--sidebar-primary` / `--sidebar-primary-foreground`
+  - `--sidebar-accent` / `--sidebar-accent-foreground`
+
+Recommended validation after token edits:
+
+1. Toggle light/dark and confirm readable heading/body contrast.
+2. Check sidebar active state + hover state against content surfaces.
+3. Confirm focus rings remain visible on buttons, inputs, and tabs.
+4. Re-check `showcase/components` and `showcase/kitchen-sink`.
+
+## Monorepo / local development
+
+```bash
+git clone https://github.com/jagreehal/starlight-shadcn
+cd starlight-shadcn
+pnpm install
+pnpm dev
+```
+
+## Author
+
+Built by [jagreehal](https://github.com/jagreehal).

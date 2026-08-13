@@ -1,0 +1,22 @@
+---
+---
+
+<a class="sl-skip-link" href="#_top">{Astro.locals.t('skipLink.label')}</a>
+
+<style>
+	@layer starlight-shadcn {
+		a {
+			clip: rect(0, 0, 0, 0);
+			position: fixed;
+			top: 0.75rem;
+			inset-inline-start: 0.75rem;
+			z-index: var(--sl-z-index-skiplink);
+		}
+		a:focus {
+			clip: unset;
+			display: block;
+			padding: 0.5rem 1rem;
+			text-decoration: none;
+		}
+	}
+</style>

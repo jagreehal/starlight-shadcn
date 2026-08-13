@@ -1,0 +1,9 @@
+---
+// Pass-through: upstream already styles this link with `--sl-color-gray-3` and
+// `--sl-color-white`, which `styles/theme.css` maps to `--muted-foreground` and
+// `--foreground`. Only the type scale differs, and that lives in
+// `styles/components.css` alongside the other footer meta rules.
+import Default from '@astrojs/starlight/components/EditLink.astro';
+---
+
+<Default />

@@ -1,0 +1,188 @@
+---
+// Starlight re-exports Expressive Code's renderer, so the source matches every
+// other code block on the site (Starlight disables Astro's built-in Shiki).
+// Imported via the peer dependency rather than EC directly, which isn't
+// resolvable from this package.
+import { Code } from '@astrojs/starlight/components';
+
+/**
+ * Renders a live component next to its source, in tabs.
+ *
+ * Pass the source with Vite's `?raw` import so the demo and the code can never
+ * drift apart:
+ *
+ * ```mdx
+ * import Preview from 'starlight-shadcn/components/Preview.astro';
+ * import Demo from './demo.tsx';
+ * import demoSource from './demo.tsx?raw';
+ *
+ * <Preview code={demoSource}>
+ *   <Demo client:load />
+ * </Preview>
+ * ```
+ */
+interface Props {
+	/** Source shown in the Code tab. */
+	code: string;
+	/** Language for syntax highlighting. */
+	lang?: string;
+	/** Optional label above the preview. */
+	title?: string;
+}
+
+const { code, lang = 'tsx', title } = Astro.props;
+const id = Math.random().toString(36).slice(2, 10);
+---
+
+<shadcn-preview class="shadcn-preview not-content">
+	<div class="preview-tablist" role="tablist" aria-label={title ?? 'Component preview'}>
+		<button
+			type="button"
+			role="tab"
+			id={`preview-tab-${id}`}
+			aria-controls={`preview-panel-${id}`}
+			aria-selected="true"
+			class="preview-tab"
+		>
+			Preview
+		</button>
+		<button
+			type="button"
+			role="tab"
+			id={`code-tab-${id}`}
+			aria-controls={`code-panel-${id}`}
+			aria-selected="false"
+			tabindex="-1"
+			class="preview-tab"
+		>
+			Code
+		</button>
+	</div>
+
+	<div
+		role="tabpanel"
+		id={`preview-panel-${id}`}
+		aria-labelledby={`preview-tab-${id}`}
+		class="preview-panel"
+		tabindex="0"
+	>
+		<slot />
+	</div>
+
+	<div
+		role="tabpanel"
+		id={`code-panel-${id}`}
+		aria-labelledby={`code-tab-${id}`}
+		class="code-panel"
+		tabindex="0"
+		hidden
+	>
+		<Code code={code.trim()} lang={lang} />
+	</div>
+</shadcn-preview>
+
+<style>
+	.shadcn-preview {
+		display: block;
+		margin-block: 1.5rem;
+		border: 1px solid var(--border);
+		border-radius: calc(var(--radius) - 2px);
+		background-color: var(--background);
+		overflow: hidden;
+	}
+
+	.preview-tablist {
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.375rem;
+		border-bottom: 1px solid var(--border);
+		background-color: var(--muted);
+	}
+
+	.preview-tab {
+		appearance: none;
+		border: 1px solid transparent;
+		border-radius: calc(var(--radius) - 4px);
+		padding: 0.25rem 0.75rem;
+		background-color: transparent;
+		/* Plain `--muted-foreground` on the `--muted` tablist lands at ~4.35:1,
+		   just under AA for this size — darken it toward the foreground. */
+		color: color-mix(in oklab, var(--muted-foreground) 70%, var(--foreground));
+		font: inherit;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		line-height: 1.6;
+		cursor: pointer;
+		transition:
+			background-color 0.15s,
+			color 0.15s;
+	}
+
+	.preview-tab:hover {
+		color: var(--foreground);
+	}
+
+	.preview-tab[aria-selected='true'] {
+		background-color: var(--background);
+		border-color: var(--border);
+		color: var(--foreground);
+	}
+
+	.preview-panel {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 2rem 1.5rem;
+	}
+
+	.code-panel :global(pre) {
+		margin: 0;
+		border: 0;
+		border-radius: 0;
+		padding: 1rem;
+	}
+
+	:where(.preview-panel, .code-panel):focus-visible {
+		outline: 2px solid var(--ring, var(--primary));
+		outline-offset: -2px;
+	}
+</style>
+
+<script>
+	class ShadcnPreview extends HTMLElement {
+		connectedCallback() {
+			const tabs = [...this.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+			if (tabs.length === 0) return;
+
+			const select = (next: HTMLButtonElement) => {
+				for (const tab of tabs) {
+					const selected = tab === next;
+					tab.setAttribute('aria-selected', String(selected));
+					tab.tabIndex = selected ? 0 : -1;
+
+					const panel = document.getElementById(tab.getAttribute('aria-controls') ?? '');
+					if (panel) panel.toggleAttribute('hidden', !selected);
+				}
+			};
+
+			for (const [index, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => select(tab));
+				tab.addEventListener('keydown', (event) => {
+					// Arrow keys move between tabs, per the WAI-ARIA tabs pattern.
+					const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+					if (delta === 0) return;
+					event.preventDefault();
+					const next = tabs[(index + delta + tabs.length) % tabs.length];
+					if (!next) return;
+					select(next);
+					next.focus();
+				});
+			}
+		}
+	}
+
+	if (!customElements.get('shadcn-preview')) {
+		customElements.define('shadcn-preview', ShadcnPreview);
+	}
+</script>

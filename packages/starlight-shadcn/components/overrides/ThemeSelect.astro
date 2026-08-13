@@ -1,0 +1,305 @@
+---
+import { config } from 'virtual:starlight-shadcn/config';
+import MenuSelect from '../MenuSelect.astro';
+
+const themeLabel =
+	typeof (Astro.locals as { t?: (key: string) => string }).t === 'function'
+		? (Astro.locals as { t: (key: string) => string }).t('themeSelect.accessibleLabel')
+		: 'Toggle theme';
+
+/* `default` is the palette with no `data-palette` attribute, so it is always
+   available and never something the consumer configures. With no extra
+   palettes there is nothing to pick between and the picker is not rendered. */
+const paletteOptions =
+	config.palettes.length > 0
+		? [
+				{ value: 'default', label: Astro.locals.t('starlightShadcn.paletteDefault') },
+				...config.palettes,
+			]
+		: [];
+---
+
+<starlight-shadcn-theme-select>
+	<div class="theme-controls">
+		{
+			paletteOptions.length > 0 && (
+				<MenuSelect
+					label={Astro.locals.t('starlightShadcn.paletteSelect')}
+					width="8.5rem"
+					options={paletteOptions.map((option) => ({
+						...option,
+						selected: option.value === 'default',
+					}))}
+				/>
+			)
+		}
+		<button
+			type="button"
+			aria-label={themeLabel}
+			aria-live="polite"
+			class="theme-toggle"
+			title={themeLabel}
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="sun"
+				aria-hidden="true"
+			>
+				<circle cx="12" cy="12" r="4"></circle>
+				<path d="M12 2v2"></path>
+				<path d="M12 20v2"></path>
+				<path d="m4.93 4.93 1.41 1.41"></path>
+				<path d="m17.66 17.66 1.41 1.41"></path>
+				<path d="M2 12h2"></path>
+				<path d="M20 12h2"></path>
+				<path d="m6.34 17.66-1.41 1.41"></path>
+				<path d="m19.07 4.93-1.41 1.41"></path>
+			</svg>
+
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="moon"
+				aria-hidden="true"
+			>
+				<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+			</svg>
+
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				class="auto"
+				aria-hidden="true"
+			>
+				<rect x="2" y="4" width="20" height="13" rx="2"></rect>
+				<path d="M8 21h8"></path>
+				<path d="M12 17v4"></path>
+			</svg>
+		</button>
+	</div>
+</starlight-shadcn-theme-select>
+
+<style>
+	@layer starlight-shadcn {
+		.theme-controls {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.375rem;
+		}
+
+		.theme-toggle {
+			all: unset;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 2rem;
+			height: 2rem;
+			border-radius: calc(var(--radius) - 2px);
+			cursor: pointer;
+			color: var(--muted-foreground);
+			background-color: transparent;
+			transition:
+				color 0.15s,
+				background-color 0.15s;
+		}
+
+		.theme-toggle:hover {
+			color: var(--foreground);
+			background-color: var(--muted);
+		}
+
+		svg {
+			flex-shrink: 0;
+			width: 1rem;
+			height: 1rem;
+			pointer-events: none;
+		}
+
+		/* Show the mode that is *selected*, not the one that would be resolved —
+		   otherwise "auto" is indistinguishable from whichever theme it resolved to. */
+		svg {
+			display: none;
+		}
+
+		.theme-toggle[data-mode='light'] svg.sun,
+		.theme-toggle[data-mode='dark'] svg.moon,
+		.theme-toggle[data-mode='auto'] svg.auto {
+			display: block;
+		}
+
+		/* `data-mode` needs localStorage, so it only lands at hydration. Until then
+		   fall back to the resolved theme, which the provider sets before paint —
+		   otherwise the button renders empty for a frame. */
+		:global([data-theme='light']) .theme-toggle:not([data-mode]) svg.sun,
+		:global([data-theme='dark']) .theme-toggle:not([data-mode]) svg.moon {
+			display: block;
+		}
+	}
+</style>
+
+<script is:inline>
+	if (typeof StarlightThemeProvider !== 'undefined') StarlightThemeProvider.updatePickers();
+</script>
+
+<script>
+	type Theme = 'auto' | 'dark' | 'light';
+	type Palette = string;
+
+	const storageKey = 'starlight-theme';
+	const paletteStorageKey = 'starlight-shadcn-palette';
+	const themeProvider = (
+		window as {
+			StarlightThemeProvider?: { updatePickers: (theme?: Theme) => void };
+		}
+	).StarlightThemeProvider;
+
+	function parseTheme(theme: unknown): Theme {
+		return theme === 'auto' || theme === 'dark' || theme === 'light' ? theme : 'auto';
+	}
+
+	/* The rendered options are the only list of valid palettes — reading them
+	   from the DOM keeps this in step with the plugin config without shipping a
+	   second copy, and rejects a stale `localStorage` value from a config that
+	   has since dropped the palette. */
+	function paletteOption(palette: Palette): HTMLElement | null {
+		return document.querySelector<HTMLElement>(
+			`starlight-shadcn-theme-select .menu-select-option[data-value="${CSS.escape(palette)}"]`,
+		);
+	}
+
+	function parsePalette(palette: unknown): Palette {
+		return typeof palette === 'string' && palette !== 'default' && paletteOption(palette)
+			? palette
+			: 'default';
+	}
+
+	function loadTheme(): Theme {
+		return parseTheme(typeof localStorage !== 'undefined' && localStorage.getItem(storageKey));
+	}
+
+	function loadPalette(): Palette {
+		return parsePalette(
+			typeof localStorage !== 'undefined' && localStorage.getItem(paletteStorageKey),
+		);
+	}
+
+	function storeTheme(theme: Theme): void {
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem(storageKey, theme === 'light' || theme === 'dark' ? theme : '');
+		}
+	}
+
+	function storePalette(palette: Palette): void {
+		if (typeof localStorage !== 'undefined') {
+			if (palette === 'default') {
+				localStorage.removeItem(paletteStorageKey);
+			} else {
+				localStorage.setItem(paletteStorageKey, palette);
+			}
+		}
+	}
+
+	function applyPalette(palette: Palette): void {
+		if (palette === 'default') {
+			delete document.documentElement.dataset.palette;
+		} else {
+			document.documentElement.dataset.palette = palette;
+		}
+	}
+
+	function syncPalettePickers(palette: Palette): void {
+		for (const host of document.querySelectorAll('starlight-shadcn-theme-select')) {
+			const picker = host.querySelector('starlight-shadcn-menu-select');
+			if (!picker) continue;
+			picker.setAttribute('data-value', palette);
+			const valueEl = picker.querySelector('.menu-select-value');
+			if (valueEl) valueEl.textContent = paletteOption(palette)?.textContent?.trim() ?? '';
+			for (const option of picker.querySelectorAll<HTMLElement>('.menu-select-option')) {
+				option.setAttribute(
+					'aria-selected',
+					option.dataset.value === palette ? 'true' : 'false',
+				);
+			}
+		}
+	}
+
+	function getPreferredColorScheme(): Theme {
+		return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+	}
+
+	function applyThemeClass(theme: Theme): void {
+		const resolved = theme === 'auto' ? getPreferredColorScheme() : theme;
+		document.documentElement.classList.toggle('dark', resolved === 'dark');
+		document.documentElement.dataset.theme = resolved;
+	}
+
+	function onThemeChange(theme: Theme): void {
+		themeProvider?.updatePickers(theme);
+		applyThemeClass(theme);
+		storeTheme(theme);
+		for (const button of document.querySelectorAll<HTMLElement>('.theme-toggle')) {
+			button.dataset.mode = theme;
+		}
+	}
+
+	function onPaletteChange(palette: Palette): void {
+		applyPalette(palette);
+		storePalette(palette);
+		syncPalettePickers(palette);
+	}
+
+	matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+		if (loadTheme() === 'auto') {
+			onThemeChange('auto');
+		}
+	});
+
+	if (!customElements.get('starlight-shadcn-theme-select')) {
+		customElements.define(
+			'starlight-shadcn-theme-select',
+			class StarlightShadcnThemeSelect extends HTMLElement {
+				constructor() {
+					super();
+					onThemeChange(loadTheme());
+					onPaletteChange(loadPalette());
+
+					this.addEventListener('menu-select-change', ((event: CustomEvent<{ value: string }>) => {
+						onPaletteChange(parsePalette(event.detail.value));
+					}) as EventListener);
+
+					const button = this.querySelector('.theme-toggle');
+					button?.addEventListener('click', () => {
+						/* Cycle the *stored* preference. `dataset.theme` only ever holds the
+						   resolved 'light'/'dark', so reading it here stranded users outside
+						   'auto' the moment they touched the button. */
+						const theme = loadTheme();
+						const newTheme = theme === 'auto' ? 'light' : theme === 'light' ? 'dark' : 'auto';
+						onThemeChange(newTheme);
+					});
+				}
+			},
+		);
+	}
+</script>

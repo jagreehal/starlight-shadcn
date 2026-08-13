@@ -1,0 +1,13 @@
+/* Geist as the fallback face. Generators that set `--font-sans` still win via
+   theme.css's `--sl-font` chain. Weights cover UI chrome (400–700). */
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+@import '@fontsource/geist-sans/700.css';
+@import '@fontsource/geist-mono/400.css';
+@import '@fontsource/geist-mono/500.css';
+
+:root {
+	--font-geist: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+	--font-geist-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

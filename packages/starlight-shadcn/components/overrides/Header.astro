@@ -1,0 +1,92 @@
+---
+import config from 'virtual:starlight/user-config';
+import { config as themeConfig } from 'virtual:starlight-shadcn/config';
+import NavLinks from '../NavLinks.astro';
+import Search from 'virtual:starlight/components/Search';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+
+const shouldRenderSearch =
+	config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+---
+
+{/* `MobileMenuToggle` is rendered by `PageFrame`, as upstream does — a second
+    instance here stacks at the same fixed position and tracks its own
+    `aria-expanded`, so opening with one and tapping the other left the menu
+    stuck open. */}
+
+<div class="site-title">
+	<SiteTitle />
+</div>
+
+{
+	themeConfig.navLinks.length > 0 && (
+		<nav class="header-nav-links" aria-label={Astro.locals.t('starlightShadcn.headerNav')}>
+			<NavLinks />
+		</nav>
+	)
+}
+
+<div class="header-right">
+	{shouldRenderSearch && <Search />}
+
+	{/* Controls, not navigation — upstream keeps these in a plain div, and a
+	    second nav landmark in the header only adds noise for screen readers. */}
+	<div class="header-nav">
+		<SocialIcons />
+		<ThemeSelect />
+		<LanguageSelect />
+	</div>
+</div>
+
+<style>
+	@layer starlight-shadcn {
+		/* Always visible, as upstream — it is the only branding and the only
+		   tap-to-home on mobile. `overflow: clip` + `min-width: 0` stop a long
+		   title pushing search and the menu button off a narrow viewport; the
+		   padding/negative-margin pair keeps the focus ring from being clipped. */
+		.site-title {
+			display: flex;
+			overflow: clip;
+			min-width: 0;
+			padding: 0.25rem;
+			margin: -0.25rem 1rem -0.25rem -0.25rem;
+		}
+
+		.header-right {
+			display: flex;
+			flex: 1 1 0%;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 0.5rem;
+		}
+
+		/* Both groups hide below 50rem — the breakpoint where `PageFrame` swaps the
+		   sidebar for the mobile menu. Social/theme/language are rendered by
+		   `MobileMenuFooter` there and the nav links by `Sidebar`, so nothing is
+		   lost; keeping them here only crowds the narrow header. */
+		.header-nav,
+		.header-nav-links {
+			display: none;
+			align-items: center;
+		}
+
+		.header-nav {
+			gap: 0.125rem;
+		}
+
+		.header-nav-links {
+			gap: 1.25rem;
+			margin-inline-end: 1rem;
+		}
+
+		@media (min-width: 50rem) {
+			.header-nav,
+			.header-nav-links {
+				display: flex;
+			}
+		}
+	}
+</style>

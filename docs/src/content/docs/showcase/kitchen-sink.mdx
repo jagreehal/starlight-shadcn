@@ -1,0 +1,199 @@
+---
+title: Kitchen Sink
+description: Canonical parity page against Starlight default examples, themed with starlight-shadcn.
+---
+
+import {
+  Badge,
+  Card,
+  CardGrid,
+  FileTree,
+  LinkButton,
+  LinkCard,
+  Steps,
+  Tabs,
+  TabItem,
+} from '@astrojs/starlight/components';
+import { PackageManagers } from 'starlight-package-managers';
+
+This page is the parity benchmark for [Starlight's default Kitchen Sink](https://starlight-themes.netlify.app/kitchen-sink/): every major pattern in one place, then polished with shadcn tokens.
+
+For palette exploration, use the header preset selector and see examples on [shadcn Components](/starlight-shadcn/showcase/components/).
+
+## Asides
+
+:::note
+A `:::note` aside with a [link](/starlight-shadcn/guides/getting-started/).
+:::
+
+:::tip
+A `:::tip` aside with inline `code`.
+:::
+
+:::caution
+A `:::caution` aside for warnings that are not destructive.
+:::
+
+:::danger
+A `:::danger` aside for high-impact warnings.
+:::
+
+## Badges
+
+{/* A container, not bare siblings: MDX lifts sibling JSX to flow level and drops
+    the whitespace between, leaving the badges touching. */}
+<div class="flex flex-wrap items-center gap-2">
+  <Badge text="New" />
+  <Badge text="Note" variant="note" />
+  <Badge text="Success" variant="success" />
+  <Badge text="Caution" variant="caution" />
+  <Badge text="Danger" variant="danger" size="large" />
+</div>
+
+## Blockquotes
+
+> The content of this quote can use **any** other Markdown syntax and should still look coherent in both themes.
+
+## Cards
+
+<CardGrid>
+  <Card title="Card title" icon="open-book">
+    The content of the card uses the same spacing and type rhythm as body prose.
+  </Card>
+  <Card title="Card grid item" icon="puzzle">
+    Compact surface treatment for dense scan paths.
+  </Card>
+</CardGrid>
+
+### Link cards
+
+<LinkCard
+  title="Plugin API"
+  description="Every option the theme exposes, with defaults."
+  href="/starlight-shadcn/reference/plugin-api/"
+/>
+<LinkCard
+  title="Getting started"
+  href="/starlight-shadcn/guides/getting-started/"
+/>
+
+## Details
+
+<details>
+<summary>The summary of the disclosure</summary>
+
+The disclosure body supports standard Markdown content.
+
+</details>
+
+## Code Blocks
+
+```astro title="example.astro"
+---
+// A code block example
+---
+
+<p>A paragraph with a variable: {Astro.props.foo}</p>
+```
+
+### Diff
+
+```diff
+function test() {
+- const foo = 'bar'
++ const foo = 'baz'
+}
+```
+
+### Terminal frame
+
+```bash title="Build something..."
+pnpm run build
+```
+
+## File Tree
+
+<FileTree>
+
+- astro.config.mjs an **important** file
+- package.json
+- README.md
+- src/
+  - components/
+    - Header.astro
+  - **pages/**
+    - index.astro
+  - …
+
+</FileTree>
+
+## Link Buttons
+
+<LinkButton href="/starlight-shadcn/guides/getting-started/" icon="rocket">
+  Primary
+</LinkButton>
+<LinkButton href="/starlight-shadcn/showcase/components/" variant="secondary" icon="external">
+  Secondary
+</LinkButton>
+<LinkButton href="/starlight-shadcn/showcase/overrides/" variant="minimal" icon="external">
+  Minimal
+</LinkButton>
+
+## Steps
+
+<Steps>
+
+1. The first step can mix prose with code:
+
+   ```ts
+   const foo = 'bar';
+   ```
+
+2. A second step confirms spacing and numbering rhythm.
+
+</Steps>
+
+## Tabs
+
+<Tabs>
+  <TabItem label="Theme" icon="starlight">
+    Tabs share the accent underline with the rest of the theme.
+  </TabItem>
+  <TabItem label="Prose" icon="document">
+    Panel content keeps the normal markdown rhythm.
+  </TabItem>
+</Tabs>
+
+<PackageManagers pkg="@astrojs/starlight" />
+
+## Tables
+
+| Column 1 | Column 2 | Column 3 | Column 4 |
+| --- | --- | --- | --- |
+| Cell 1-1 | Cell 1-2 | Cell 1-3 | Cell 1-4 |
+| Cell 2-1 | Cell 2-2 | Cell 2-3 | Cell 2-4 |
+| Cell 3-1 | Cell 3-2 | Cell 3-3 | Cell 3-4 |
+| Cell 4-1 | Cell 4-2 | Cell 4-3 | Cell 4-4 |
+
+## Parity matrix
+
+| Starlight Kitchen Sink category | Local parity implementation | Status |
+| --- | --- | --- |
+| Asides | `:::note` / `:::tip` / `:::caution` / `:::danger` on this page | matched |
+| Badges | `<Badge>` across all variants and sizes | matched |
+| Blockquotes | Markdown blockquote styling on this page | matched |
+| Cards / Link cards | `<Card>`, `<CardGrid>` and `<LinkCard>` on this page | matched |
+| Details | Native `<details>` treatment on this page | matched |
+| Code blocks + diff + terminal | Standard fenced blocks, `diff`, terminal title | matched |
+| File tree | `<FileTree>` on this page | matched |
+| Link buttons | `<LinkButton>` in all three variants, with icons | matched |
+| Steps | `<Steps>` with an embedded code block | matched |
+| Tabs | `<Tabs>` plus `starlight-package-managers` install snippet | matched |
+| Tables | Standard markdown table | matched |
+| React Aria controls / overlays | Expanded in [shadcn Components](/starlight-shadcn/showcase/components/) | extended |
+
+### Remaining parity gaps before full `add --all`
+
+- Starlight's dedicated example depth (e.g. multiple aside-content permutations on separate pages) is broader than this single-page parity summary.
+- Link-card semantics can be promoted from styled cards to dedicated reusable shadcn wrappers for stricter behavior parity.
+- A few official Starlight component affordances (fine-grained transitions/focus nuances) still need side-by-side tuning under `astro-default`.

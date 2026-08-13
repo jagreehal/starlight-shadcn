@@ -1,0 +1,173 @@
+---
+title: Theming
+description: Paste CSS variables from any shadcn theme generator and restyle the whole site.
+---
+
+import { Aside, Badge, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This theme has no theming API of its own. It reads the standard shadcn CSS variables, so **anything that exports them works** — including generators the shadcn team and community already use.
+
+<CardGrid>
+  <LinkCard
+    title="shadcn/create"
+    description="The canonical generator. Preview colours, radius and fonts, then copy the CSS."
+    href="https://ui.shadcn.com/create?base=aria"
+  />
+  <LinkCard
+    title="tweakcn"
+    description="Visual editor with a large preset catalogue. Export as CSS variables."
+    href="https://tweakcn.com/"
+  />
+  <LinkCard
+    title="shadcn.studio"
+    description="Theme browser and editor. Copy the :root and .dark blocks."
+    href="https://www.shadcn.studio/"
+  />
+</CardGrid>
+
+## Paste a theme
+
+<Steps>
+
+1. Generate a theme in any of the tools above and copy its CSS.
+
+2. Replace the `:root` and `.dark` token blocks in `src/styles/global.css`. Leave the `@import` lines and the `@theme inline` block alone — those map tokens into Tailwind utilities and are not part of what generators emit.
+
+   ```css title="src/styles/global.css" {5,10}
+   @import 'tailwindcss';
+   @import 'shadcn/tailwind.css';
+
+   @theme inline {
+     /* keep — maps tokens to bg-*, text-*, border-* utilities */
+   }
+
+   :root {
+     --radius: 0.625rem;
+     /* paste the generated light tokens here */
+   }
+
+   .dark {
+     /* paste the generated dark tokens here */
+   }
+   ```
+
+3. Reload. The header, sidebar, search, table of contents, cards and buttons all follow.
+
+</Steps>
+
+<Aside type="tip">
+No build step, no config, no restart. Your `:root` block is unlayered CSS; the theme's own defaults live in `@layer starlight-shadcn`. Unlayered declarations beat layered ones regardless of specificity, so pasted tokens always win.
+</Aside>
+
+## Token contract
+
+Starlight's chrome is built from its own `--sl-*` variables. The theme bridges these shadcn tokens onto them. Ship all of them — generators do by default.
+
+| Token | Drives |
+| --- | --- |
+| `background` / `foreground` | Page ground and body text |
+| `card` / `card-foreground` | `<Card>`, `<LinkCard>` surfaces |
+| `popover` / `popover-foreground` | Search dialog, menu surfaces |
+| `primary` / `primary-foreground` | Links, active states, `<LinkButton>`, banner |
+| `secondary` / `secondary-foreground` | Mobile menu button, table-of-contents toggle |
+| `muted` / `muted-foreground` | Hover surfaces, secondary text, file tree |
+| `accent` / `accent-foreground` | Link-card hover, ghost button hover |
+| `destructive` | Draft and fallback content notices |
+| `border` | Every hairline: header, cards, tables, code frames |
+| `ring` | Focus outlines |
+| `radius` | Corner radius across the whole theme |
+
+### Sidebar
+
+The sidebar honours the full `--sidebar-*` family, so a palette tuned in tweakcn or shadcn.studio lands where you expect.
+
+| Token | Drives |
+| --- | --- |
+| `sidebar` / `sidebar-foreground` | Sidebar surface and link text |
+| `sidebar-primary` / `sidebar-primary-foreground` | The current-page item |
+| `sidebar-accent` / `sidebar-accent-foreground` | Link and group hover |
+| `sidebar-border` | Nesting guides and the pane edge |
+| `sidebar-ring` | Focus outlines inside the sidebar |
+
+Every one falls back to its general equivalent, so a theme that omits the family still renders correctly — the sidebar just shares the page ground. `--sidebar-background`, the pre-v4 name for `--sidebar`, is also accepted; shadcn.studio still exports it.
+
+## Colour format
+
+Values must be **complete colours**, not the bare channel triples used by Tailwind v3:
+
+```css
+/* Works — any CSS colour function */
+--background: oklch(1 0 0);
+--background: hsl(0 0% 100%);
+
+/* Breaks everything */
+--background: 0 0% 100%;
+```
+
+The v3 convention stored raw channels and wrapped them at the point of use (`hsl(var(--background))`). This theme reads `var(--background)` directly, as shadcn does under Tailwind v4. Paste bare triples and you get a transparent page with black text — every token resolves to a string that is not a colour.
+
+If a generator hands you the v3 form, wrap each value in `hsl(…)`. OKLCH is preferred but nothing depends on it.
+
+<Aside type="tip">
+`--radius` is optional. Palette-only exports frequently omit it, and the theme's own `0.625rem` applies. Set it if you want the generator's corner rounding.
+</Aside>
+
+### Not used by the chrome
+
+`--input` and `--chart-1` … `--chart-5` are passed through untouched. Your own shadcn components use them; no Starlight UI does.
+
+`--shadow-*` and `--tracking-*` (from tweakcn / create) are bridged when present: shadows map onto Starlight's `--sl-shadow-*`, and tracking drives heading letter-spacing. If a paste omits them, the theme's own fallbacks apply.
+
+## Fonts
+
+The plugin injects Geist Sans + Geist Mono as fallbacks (`--font-geist` / `--font-geist-mono`). Paste a `--font-sans` from a generator and it wins. See [Plugin API → Fonts](/starlight-shadcn/reference/plugin-api/#fonts) for `fonts: false` when you ship faces yourself.
+
+<Aside type="caution">
+Do not wire `--chart-*` into anything semantic. They are categorical series colours, and plenty of palettes — including this site's — ship them greyscale. An earlier version of this theme derived aside and badge colours from them, which flattened every callout to the same grey.
+</Aside>
+
+## Aside and badge colours
+
+Notes, tips, cautions and danger callouts are **not** themed from shadcn tokens. Starlight tunes three lightness stops per hue and swaps their roles between light and dark, which is hard to beat and impossible to derive from a four-colour brand palette.
+
+Retune them with Starlight's hue variables:
+
+```css title="src/styles/global.css"
+:root {
+  --sl-hue-blue: 234; /* note */
+  --sl-hue-purple: 281; /* tip */
+  --sl-hue-orange: 41; /* caution */
+  --sl-hue-red: 339; /* danger */
+  --sl-hue-green: 101; /* success badges */
+}
+```
+
+## After pasting
+
+Check these two pages in both light and dark:
+
+<CardGrid>
+  <LinkCard
+    title="Kitchen Sink"
+    description="Every Starlight component on one page — asides, cards, steps, tabs, file tree."
+    href="/starlight-shadcn/showcase/kitchen-sink/"
+  />
+  <LinkCard
+    title="shadcn Components"
+    description="React Aria islands, to confirm your tokens reach components as well as chrome."
+    href="/starlight-shadcn/showcase/components/"
+  />
+</CardGrid>
+
+Worth a specific look: the current-page sidebar item, focus rings (tab through the header), and code block frames.
+
+## Known limits
+
+- **CSS variables are required.** Installing shadcn with `--no-css-variables` emits fixed colour utilities, which nothing can bridge. Keep `tailwind.cssVariables` set to `true`.
+- **Named fonts still need a face.** The plugin loads Geist Sans + Geist Mono as `--font-geist` / `--font-geist-mono` fallbacks. A pasted `--font-sans` always wins — but if that name is something other than Geist (e.g. Open Sans from a tweakcn preset), install `@fontsource/…` yourself (or set `fonts: false` and ship faces entirely). Otherwise the browser falls through to the system stack.
+- **Tailwind v4 only.** A v3 JavaScript config is not a token source.
+- **Extra tokens are mostly harmless.** Generators emit `--destructive-foreground`, chart colours, and more. Chart colours are unused by chrome on purpose. Shadow (`--shadow-*`) and tracking (`--tracking-*`) tokens *are* bridged when present.
+
+<Aside>
+Presets in the site header (`Azure`, `Sunset`, `Forest`, `Astro Default`) are a demo of token swapping, not a theming system. The Default (no palette) is the official shadcn/create `neutral` paste. For real theme browsing, use the generators above and paste the CSS.
+</Aside>

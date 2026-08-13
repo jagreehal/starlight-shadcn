@@ -1,0 +1,485 @@
+---
+import MobileMenuToggle from 'virtual:starlight/components/MobileMenuToggle';
+import { config } from 'virtual:starlight-shadcn/config';
+
+const { hasSidebar } = Astro.locals.starlightRoute;
+const collapsible = config.collapsibleSidebar && hasSidebar;
+---
+
+<div
+	class="page sl-flex shadcn-page-frame"
+	data-collapsible-sidebar={collapsible ? '' : undefined}
+>
+	<header class="header"><slot name="header" /></header>
+	{
+		hasSidebar && (
+			<nav class="sidebar print:hidden" aria-label={Astro.locals.t('sidebarNav.accessibleLabel')}>
+				<MobileMenuToggle />
+				{collapsible && (
+					<starlight-shadcn-sidebar-collapse class="sidebar-collapse-host">
+						<button
+							type="button"
+							class="sidebar-collapse-toggle"
+							aria-label={Astro.locals.t('starlightShadcn.collapseSidebar')}
+							data-sidebar-collapse-trigger
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="m15 18-6-6 6-6" />
+							</svg>
+						</button>
+					</starlight-shadcn-sidebar-collapse>
+				)}
+				{/* No `hidden` attribute on this or the reopen panel: `ThemeProvider`
+				    restores the collapsed state before paint, so their visibility has
+				    to come from CSS too — gating it on JS leaves a collapsed sidebar
+				    with no way back until (or unless) the module runs. */}
+				{collapsible && <div class="sidebar-hit-strip" data-sidebar-hit-strip />}
+				<div id="starlight__sidebar" class="sidebar-pane" data-sidebar-pane>
+					<div class="sidebar-content sl-flex">
+						<slot name="sidebar" />
+					</div>
+				</div>
+				{
+					collapsible && (
+						<div class="sidebar-reopen-panel" data-sidebar-reopen>
+							<button
+								type="button"
+								class="sidebar-collapse-toggle"
+								aria-label={Astro.locals.t('starlightShadcn.expandSidebar')}
+								data-sidebar-expand-trigger
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"
+								>
+									<path d="m9 18 6-6-6-6" />
+								</svg>
+							</button>
+						</div>
+					)
+				}
+			</nav>
+		)
+	}
+	<div class="main-frame"><slot /></div>
+</div>
+
+<style>
+	/* Registered so scroll-driven keyframes can interpolate the mask edges. */
+	@property --scroll-fade-t {
+		syntax: '<length-percentage>';
+		inherits: false;
+		initial-value: 0px;
+	}
+	@property --scroll-fade-b {
+		syntax: '<length-percentage>';
+		inherits: false;
+		initial-value: 0px;
+	}
+
+	@layer starlight-shadcn {
+		.page {
+			flex-direction: column;
+			min-height: 100vh;
+		}
+
+		.header {
+			display: flex;
+			align-items: center;
+			z-index: var(--sl-z-index-navbar);
+			position: fixed;
+			inset-inline-start: 0;
+			inset-block-start: var(--sl-docs-row-1);
+			width: 100%;
+			height: var(--sl-nav-height);
+			border-bottom: none;
+			padding: var(--sl-nav-pad-y) var(--sl-nav-pad-x);
+			background-color: color-mix(in oklab, var(--background) 88%, transparent);
+			backdrop-filter: blur(10px);
+		}
+
+		:global([data-has-sidebar]) .header {
+			padding-inline-end: calc(
+				var(--sl-nav-gap) + var(--sl-nav-pad-x) + var(--sl-menu-button-size)
+			);
+		}
+
+		.sidebar-pane {
+			visibility: var(--sl-sidebar-visibility, hidden);
+			position: fixed;
+			z-index: var(--sl-z-index-menu);
+			inset-block: var(--sl-docs-row-2) 0;
+			inset-inline-start: 0;
+			width: 100%;
+			/* `--sidebar-background` is the pre-v4 name; page ground if neither exists. */
+			background-color: var(--sidebar, var(--sidebar-background, var(--background)));
+			overflow: hidden;
+		}
+
+		:global([aria-expanded='true']) ~ .sidebar-pane {
+			--sl-sidebar-visibility: visible;
+		}
+
+		.sidebar-content {
+			--_scroll-fade-size: min(12%, 2.5rem);
+			/* Unfaded by default. The fade is applied *by* the scroll-driven
+			   animation below, so a sidebar short enough not to scroll — and any
+			   browser without `animation-timeline` — keeps its first and last
+			   entries fully opaque instead of permanently washed out. */
+			--scroll-fade-t: 0px;
+			--scroll-fade-b: 0px;
+			height: 100%;
+			min-height: 0;
+			padding: 1rem var(--sl-sidebar-pad-x) 0;
+			flex-direction: column;
+			gap: 1rem;
+			overflow-y: auto;
+			scrollbar-gutter: stable;
+			-webkit-mask-image: linear-gradient(
+				to bottom,
+				transparent 0,
+				#000 var(--scroll-fade-t),
+				#000 calc(100% - var(--scroll-fade-b)),
+				transparent 100%
+			);
+			mask-image: linear-gradient(
+				to bottom,
+				transparent 0,
+				#000 var(--scroll-fade-t),
+				#000 calc(100% - var(--scroll-fade-b)),
+				transparent 100%
+			);
+			-webkit-mask-repeat: no-repeat;
+			mask-repeat: no-repeat;
+		}
+
+		@supports (animation-timeline: scroll()) {
+			@media (prefers-reduced-motion: no-preference) {
+				.sidebar-content {
+					animation:
+						1ms ease-in-out starlight-shadcn-scroll-fade-t,
+						1ms ease-in-out starlight-shadcn-scroll-fade-b;
+					animation-timeline: scroll(self y), scroll(self y);
+					animation-range: 0 2.5rem, calc(100% - 2.5rem) 100%;
+					animation-fill-mode: both;
+				}
+			}
+		}
+
+		@keyframes starlight-shadcn-scroll-fade-t {
+			0% {
+				--scroll-fade-t: 0px;
+			}
+			100% {
+				--scroll-fade-t: var(--_scroll-fade-size);
+			}
+		}
+
+		@keyframes starlight-shadcn-scroll-fade-b {
+			0% {
+				--scroll-fade-b: var(--_scroll-fade-size);
+			}
+			100% {
+				--scroll-fade-b: 0px;
+			}
+		}
+
+		.main-frame {
+			padding-top: calc(var(--sl-docs-row-2) + var(--sl-mobile-toc-height));
+			padding-inline-start: var(--sl-content-inline-start);
+		}
+
+		.sidebar-collapse-host {
+			display: none;
+		}
+
+		.sidebar-hit-strip,
+		.sidebar-reopen-panel {
+			display: none;
+		}
+
+		.sidebar-collapse-toggle {
+			all: unset;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 2rem;
+			height: 2rem;
+			border-radius: calc(var(--radius) - 2px);
+			cursor: pointer;
+			color: var(--muted-foreground);
+			background-color: var(--background);
+			border: 1px solid var(--border);
+			box-sizing: border-box;
+		}
+
+		.sidebar-collapse-toggle:hover {
+			color: var(--foreground);
+			background-color: var(--muted);
+		}
+
+		@media (min-width: 50rem) {
+			:global([data-has-sidebar]) .header {
+				padding-inline-end: var(--sl-nav-pad-x);
+			}
+			.sidebar-pane {
+				--sl-sidebar-visibility: visible;
+				width: var(--sl-sidebar-col);
+				transition:
+					transform 0.2s ease,
+					width 0.2s ease,
+					box-shadow 0.2s ease,
+					border-radius 0.2s ease;
+			}
+
+			.sidebar-pane::after {
+				content: '';
+				position: absolute;
+				inset-block: 0;
+				inset-inline-end: 0;
+				width: 1px;
+				background: linear-gradient(
+					to bottom,
+					transparent 0%,
+					var(--sidebar-border, var(--border)) 50%,
+					transparent 100%
+				);
+				pointer-events: none;
+				z-index: 1;
+			}
+
+			:global(html[data-sidebar-collapsed]) .page[data-collapsible-sidebar] .sidebar-pane::after {
+				display: none;
+			}
+
+			.page[data-collapsible-sidebar] .sidebar-collapse-host {
+				display: block;
+				position: fixed;
+				z-index: calc(var(--sl-z-index-menu) + 1);
+				inset-block-start: calc(var(--sl-docs-row-2) + 0.75rem);
+				inset-inline-start: calc(var(--sl-sidebar-col) - 2.75rem);
+				transition: inset-inline-start 0.2s ease, opacity 0.15s ease;
+			}
+
+			.page[data-collapsible-sidebar] .sidebar-hit-strip {
+				display: block;
+				position: fixed;
+				z-index: var(--sl-z-index-menu);
+				inset-block: var(--sl-docs-row-2) 0;
+				inset-inline-start: 0;
+				width: 0.25rem;
+				pointer-events: none;
+			}
+
+			.page[data-collapsible-sidebar] .sidebar-reopen-panel {
+				display: flex;
+				position: fixed;
+				z-index: calc(var(--sl-z-index-menu) + 1);
+				inset-block-start: calc(var(--sl-docs-row-2) + 0.75rem);
+				inset-inline-start: 0.75rem;
+				opacity: 0;
+				pointer-events: none;
+				/* `visibility`, not just `opacity` — an opacity-0 button keeps its box
+				   and stays in the tab order, so keyboard users land on an invisible
+				   control that still fires. */
+				visibility: hidden;
+				transition:
+					opacity 0.15s ease,
+					visibility 0.15s;
+			}
+
+			:global(html[data-sidebar-collapsed]) .page[data-collapsible-sidebar] .sidebar-pane {
+				width: var(--sl-sidebar-width);
+				transform: translateX(calc(-1 * var(--sl-sidebar-width)));
+			}
+
+			:global(html[data-sidebar-collapsed][data-sidebar-hovered])
+				.page[data-collapsible-sidebar]
+				.sidebar-pane {
+				transform: translateX(0.5rem);
+				inset-block: calc(var(--sl-docs-row-2) + 0.5rem) 0.5rem;
+				border-radius: calc(var(--radius) + 2px);
+				border: 1px solid var(--sidebar-border, var(--border));
+				box-shadow: var(--sl-shadow-lg);
+				overflow: hidden;
+			}
+
+			:global(html[data-sidebar-collapsed]) .page[data-collapsible-sidebar] .sidebar-collapse-host {
+				opacity: 0;
+				pointer-events: none;
+				/* Same reason as the reopen panel: keep it out of the tab order. */
+				visibility: hidden;
+			}
+
+			:global(html[data-sidebar-collapsed]:not([data-sidebar-hovered]))
+				.page[data-collapsible-sidebar]
+				.sidebar-hit-strip {
+				pointer-events: auto;
+			}
+
+			:global(html[data-sidebar-collapsed]:not([data-sidebar-hovered]))
+				.page[data-collapsible-sidebar]
+				.sidebar-reopen-panel {
+				opacity: 1;
+				pointer-events: auto;
+				visibility: visible;
+			}
+
+			:global([dir='rtl'] html[data-sidebar-collapsed])
+				.page[data-collapsible-sidebar]
+				.sidebar-pane {
+				transform: translateX(var(--sl-sidebar-width));
+			}
+
+			:global([dir='rtl'] html[data-sidebar-collapsed][data-sidebar-hovered])
+				.page[data-collapsible-sidebar]
+				.sidebar-pane {
+				transform: translateX(-0.5rem);
+			}
+		}
+	}
+</style>
+
+{
+	collapsible && (
+		<script>
+			const STORAGE_KEY = 'starlight-shadcn-sidebar-collapsed';
+			const DESKTOP = '(min-width: 50rem)';
+
+			class StarlightShadcnSidebarCollapse extends HTMLElement {
+				#leaveTimer = 0;
+				#pane: HTMLElement | null = null;
+				#strip: HTMLElement | null = null;
+				// One controller drops every listener on disconnect. `matchMedia` in
+				// particular outlives this element, so without it each client-side
+				// navigation would leave another live listener behind.
+				#listeners: AbortController | null = null;
+
+				disconnectedCallback() {
+					this.#listeners?.abort();
+					this.#listeners = null;
+					window.clearTimeout(this.#leaveTimer);
+				}
+
+				connectedCallback() {
+					const nav = this.closest('nav.sidebar');
+					if (!nav) return;
+
+					this.#listeners?.abort();
+					this.#listeners = new AbortController();
+					const { signal } = this.#listeners;
+
+					this.#pane = nav.querySelector('[data-sidebar-pane]');
+					this.#strip = nav.querySelector('[data-sidebar-hit-strip]');
+					const reopen = nav.querySelector('[data-sidebar-reopen]');
+					const collapseBtn = this.querySelector('[data-sidebar-collapse-trigger]');
+					const expandBtn = reopen?.querySelector('[data-sidebar-expand-trigger]');
+
+					collapseBtn?.addEventListener('click', () => this.#setCollapsed(true), { signal });
+					expandBtn?.addEventListener('click', () => this.#setCollapsed(false), { signal });
+
+					const onEnter = (event: PointerEvent) => this.#onPointerEnter(event);
+					const onLeave = (event: PointerEvent) => this.#onPointerLeave(event);
+
+					this.#strip?.addEventListener('pointerenter', onEnter, { signal });
+					this.#strip?.addEventListener('pointerleave', onLeave, { signal });
+					this.#pane?.addEventListener('pointerenter', onEnter, { signal });
+					this.#pane?.addEventListener('pointerleave', onLeave, { signal });
+
+					matchMedia(DESKTOP).addEventListener(
+						'change',
+						(event) => {
+							if (!event.matches) this.#clearHover();
+						},
+						{ signal },
+					);
+
+					// Sync reopen/hit-strip visibility attributes for a11y.
+					this.#syncChrome();
+				}
+
+				#isDesktop() {
+					return matchMedia(DESKTOP).matches;
+				}
+
+				#setCollapsed(collapsed: boolean) {
+					document.documentElement.toggleAttribute('data-sidebar-collapsed', collapsed);
+					this.#clearHover();
+					try {
+						localStorage.setItem(STORAGE_KEY, collapsed ? 'true' : 'false');
+					} catch {
+						/* private mode */
+					}
+					this.#syncChrome();
+				}
+
+				#syncChrome() {
+					// Visibility is CSS's job — see the markup note. All that is left
+					// here is the state the stylesheet cannot express.
+					const collapsed = document.documentElement.hasAttribute('data-sidebar-collapsed');
+					this.querySelector('[data-sidebar-collapse-trigger]')?.setAttribute(
+						'aria-expanded',
+						String(!collapsed),
+					);
+					this.closest('nav.sidebar')
+						?.querySelector('[data-sidebar-expand-trigger]')
+						?.setAttribute('aria-expanded', String(!collapsed));
+				}
+
+				#clearHover() {
+					document.documentElement.removeAttribute('data-sidebar-hovered');
+					window.clearTimeout(this.#leaveTimer);
+				}
+
+				#shouldIgnoreHover(event: PointerEvent) {
+					if (!document.documentElement.hasAttribute('data-sidebar-collapsed')) return true;
+					if (!this.#isDesktop()) return true;
+					if (event.pointerType === 'touch') return true;
+					return false;
+				}
+
+				#onPointerEnter(event: PointerEvent) {
+					if (this.#shouldIgnoreHover(event)) return;
+					// Opening mid-transition fights the animation; leaving must never be
+					// ignored, or the peek sticks open until the next pointer event.
+					if (this.#pane && this.#pane.getAnimations().length > 0) return;
+					window.clearTimeout(this.#leaveTimer);
+					document.documentElement.setAttribute('data-sidebar-hovered', '');
+				}
+
+				#onPointerLeave(event: PointerEvent) {
+					if (this.#shouldIgnoreHover(event)) return;
+					const nearEdge = event.clientX < 100;
+					window.clearTimeout(this.#leaveTimer);
+					this.#leaveTimer = window.setTimeout(
+						() => document.documentElement.removeAttribute('data-sidebar-hovered'),
+						nearEdge ? 500 : 0,
+					);
+				}
+			}
+
+			if (!customElements.get('starlight-shadcn-sidebar-collapse')) {
+				customElements.define('starlight-shadcn-sidebar-collapse', StarlightShadcnSidebarCollapse);
+			}
+		</script>
+	)
+}
