@@ -1,6 +1,6 @@
 {
   "name": "starlight-shadcn",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "shadcn + React Aria theme for Starlight on Astro 7",
   "author": "jagreehal",
