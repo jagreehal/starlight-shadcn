@@ -33,7 +33,7 @@
     "react": "^19.2.8",
     "react-aria-components": "1.20.0",
     "react-dom": "^19.2.8",
-    "shadcn": "4.16.2",
+    "shadcn": "4.18.0",
     "starlight-package-managers": "0.12.0",
     "starlight-shadcn": "workspace:*",
     "tailwind-merge": "3.6.0",
