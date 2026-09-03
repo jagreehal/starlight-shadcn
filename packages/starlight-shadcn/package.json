@@ -55,7 +55,7 @@
   "devDependencies": {
     "@astrojs/starlight": "^0.41.10",
     "astro": "^7",
-    "mermaid": "11.17.1"
+    "mermaid": "11.17.2"
   },
   "engines": {
     "node": ">=22.12.0"
