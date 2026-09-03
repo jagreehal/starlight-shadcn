@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^6",
-    "@astrojs/starlight": "^0.41.7",
+    "@astrojs/starlight": "^0.41.10",
     "@phosphor-icons/react": "2.1.10",
     "@tailwindcss/vite": "^4",
     "@types/react": "^19",
