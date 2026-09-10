@@ -43,7 +43,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9",
     "@eslint/js": "^10",
-    "@playwright/test": "1.62.1",
+    "@playwright/test": "1.63.0",
     "@shikijs/themes": "4.4.3",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
