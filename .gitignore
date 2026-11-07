@@ -37,3 +37,5 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+# local pnpm store, created by sandboxed installs
+.pnpm-store/

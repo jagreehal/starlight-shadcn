@@ -1,0 +1,72 @@
+/*
+ * Page transitions, enabled with `viewTransitions: true`.
+ *
+ * Uses the browser's cross-document view transitions. Each navigation stays a
+ * full page load, so Starlight's scripts and the theme's run on every page.
+ * The header and desktop sidebar hold still while the content fades out and
+ * rises in. Reduced motion turns the animation off.
+ */
+@view-transition {
+	navigation: auto;
+}
+
+@layer starlight-shadcn {
+	header.header {
+		view-transition-name: sl-header;
+	}
+
+	main {
+		view-transition-name: sl-main;
+	}
+
+	/* Below 50rem the sidebar is the mobile menu, closed on every new page, so it
+	   is left to the root crossfade rather than pinned. */
+	@media (min-width: 50rem) {
+		.sidebar-pane {
+			view-transition-name: sl-sidebar;
+		}
+	}
+
+	::view-transition-group(sl-header),
+	::view-transition-group(sl-sidebar),
+	::view-transition-old(sl-header),
+	::view-transition-new(sl-header),
+	::view-transition-old(sl-sidebar),
+	::view-transition-new(sl-sidebar) {
+		animation: none;
+	}
+
+	/* The content block doesn't move or resize between pages: the browser's
+	   default slides it from where the old page was scrolled to and stretches it
+	   between the two heights, which reads as a gap opening up after following a
+	   link from the bottom of a long page. The old content goes at once (its
+	   snapshot is the top of the old page, not where the reader was) and the new
+	   content fades in with a small rise. */
+	::view-transition-group(sl-main) {
+		animation: none;
+	}
+
+	::view-transition-old(sl-main) {
+		animation: none;
+		opacity: 0;
+	}
+
+	::view-transition-new(sl-main) {
+		animation: 220ms cubic-bezier(0.16, 1, 0.3, 1) both sl-page-in;
+	}
+
+	@keyframes sl-page-in {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		::view-transition-group(*),
+		::view-transition-old(*),
+		::view-transition-new(*) {
+			animation: none !important;
+		}
+	}
+}

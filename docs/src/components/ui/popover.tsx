@@ -1,4 +1,7 @@
+"use client"
+
 import * as React from "react"
+import { cn } from "cn"
 import {
   DialogTrigger,
   Heading,
@@ -6,8 +9,6 @@ import {
   type DialogTriggerProps,
   type PopoverProps as PopoverPrimitiveProps,
 } from "react-aria-components"
-
-import { cn } from "@/lib/utils"
 
 function PopoverTrigger({ children, ...props }: DialogTriggerProps) {
   return (

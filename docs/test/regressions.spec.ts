@@ -18,6 +18,37 @@ async function visit(page: Page, path: string) {
 	expect(response?.status(), `navigation to ${path} failed`).toBeLessThan(400);
 }
 
+test.describe('hero', () => {
+	/* Starlight parses a hero action's `icon` into `{ name }` or `{ html }`. */
+	test('action icons render', async ({ page }) => {
+		await visit(page, '');
+		await expect(page.locator('.hero .actions svg path').first()).toBeAttached();
+	});
+});
+
+test.describe('view transitions', () => {
+	/* `viewTransitions: true` opts every page into cross-document transitions
+	   and pins the chrome so only the content animates. */
+	test('page opts in and pins header, sidebar and content', async ({ page }, testInfo) => {
+		await visit(page, 'guides/getting-started/');
+		const names = await page.evaluate(() => {
+			const name = (sel: string) => {
+				const el = document.querySelector(sel);
+				return el ? getComputedStyle(el).viewTransitionName : null;
+			};
+			const optIn = [...document.styleSheets].some((sheet) =>
+				[...sheet.cssRules].some((rule) => rule.cssText.startsWith('@view-transition')),
+			);
+			return { optIn, header: name('header.header'), main: name('main'), sidebar: name('.sidebar-pane') };
+		});
+		expect(names.optIn).toBe(true);
+		expect(names.header).toBe('sl-header');
+		expect(names.main).toBe('sl-main');
+		// Below 50rem the sidebar is the mobile menu and is left unpinned.
+		expect(names.sidebar).toBe(isMobile(testInfo.project.name) ? 'none' : 'sl-sidebar');
+	});
+});
+
 test.describe('header', () => {
 	/*
 	 * `Header` rendered a second `MobileMenuToggle` on top of `PageFrame`'s. Both

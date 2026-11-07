@@ -38,8 +38,17 @@ export default defineConfig({
 		{ name: 'mobile-dark', use: { ...devices['Pixel 5'], colorScheme: 'dark' } },
 	],
 
-	// Not `webServer`: `astro preview` daemonises, so Playwright sees the command
-	// exit immediately and aborts the run. See `test/global-setup.ts`.
-	globalSetup: './test/global-setup.ts',
-	globalTeardown: './test/global-teardown.ts',
+	/*
+	 * Runs Astro's `preview()` in the foreground rather than the daemonising CLI,
+	 * so Playwright can wait for readiness and reliably kill it afterwards. See
+	 * `test/preview-server.mjs`.
+	 */
+	webServer: {
+		command: 'node ./test/preview-server.mjs',
+		url: `http://localhost:4321${BASE}/`,
+		reuseExistingServer: !process.env.CI,
+		timeout: 120_000,
+		stdout: 'ignore',
+		stderr: 'pipe',
+	},
 });

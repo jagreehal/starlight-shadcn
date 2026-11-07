@@ -16,6 +16,13 @@ export const heroActionVariantSchema = z
 export const ExtendDocsSchema = z.object({
 	hero: z
 		.object({
+			announcement: z
+				.object({
+					text: z.string(),
+					link: z.string(),
+				})
+				.optional()
+				.describe('Pill link rendered above the hero title, e.g. a release note.'),
 			actions: z
 				.array(
 					z.object({

@@ -11,6 +11,9 @@ const {
 } = data.hero || {};
 
 const tagline = heroTagline || data.description;
+// `announcement` comes from `ExtendDocsSchema`, which Starlight's hero type does not include.
+const announcement = (data.hero as { announcement?: { text: string; link: string } } | undefined)
+	?.announcement;
 const hasImage = Boolean(image);
 
 const imageAttrs = {
@@ -18,6 +21,16 @@ const imageAttrs = {
 	decoding: 'async' as const,
 	alt: image?.alt || '',
 };
+
+// Hero images are the LCP element on splash pages: serve a width per viewport.
+// They span half the row from 50rem up and the full width below.
+const responsive = (img: ImageMetadata) =>
+	img.format === 'svg'
+		? {}
+		: {
+				widths: [...[480, 800, 1200, 1600].filter((w) => w < img.width), img.width],
+				sizes: '(min-width: 50rem) 50vw, 100vw',
+			};
 
 let darkImage: ImageMetadata | undefined;
 let lightImage: ImageMetadata | undefined;
@@ -49,16 +62,27 @@ const normalizeVariant = (variant?: string) => {
 					<Image
 						src={darkImage}
 						{...imageAttrs}
+						{...responsive(darkImage)}
 						class:list={{ 'light:sl-hidden': Boolean(lightImage) }}
 					/>
 				)}
-				{lightImage && <Image src={lightImage} {...imageAttrs} class="dark:sl-hidden" />}
+				{lightImage && (
+					<Image src={lightImage} {...imageAttrs} {...responsive(lightImage)} class="dark:sl-hidden" />
+				)}
 				{rawHtml && <div class="hero-html sl-flex" set:html={rawHtml} />}
 			</div>
 		)
 	}
 
 	<div class="hero-info">
+		{
+			announcement && (
+				<a class="announcement" href={announcement.link}>
+					{announcement.text}
+					<Icon name="right-arrow" class="icon" />
+				</a>
+			)
+		}
 		<h1 id="_top" set:html={title} />
 		{tagline && <p class="tagline" set:html={tagline} />}
 		{
@@ -72,7 +96,9 @@ const normalizeVariant = (variant?: string) => {
 							{...attrs}
 						>
 							{text}
-							{icon && <Icon name={icon} class="icon" />}
+							{/* Starlight parses `icon` into `{ name }` (built-in) or `{ html }` (raw SVG). */}
+							{icon?.name && <Icon name={icon.name} class="icon" />}
+							{icon?.html && <span class="icon" set:html={icon.html} />}
 						</a>
 					))}
 				</div>
@@ -86,11 +112,32 @@ const normalizeVariant = (variant?: string) => {
 		.hero {
 			display: grid;
 			gap: 2rem;
-			padding-block: 2rem 3rem;
+			padding-block: 3rem 3.5rem;
+		}
+
+		/* A hero without an image centres its content. */
+		.hero:not([data-has-image]) .hero-info {
+			align-items: center;
+			text-align: center;
+		}
+
+		.hero:not([data-has-image]) .actions {
+			justify-content: center;
+		}
+
+		@media (min-width: 50rem) {
+			.hero {
+				padding-block: 5rem 4rem;
+			}
 		}
 
 		.hero[data-has-image] {
 			align-items: center;
+		}
+
+		/* Text first: the image sits right of it on desktop and below it on mobile. */
+		.hero-image {
+			order: 2;
 		}
 
 		@media (min-width: 50rem) {
@@ -106,16 +153,19 @@ const normalizeVariant = (variant?: string) => {
 		}
 
 		h1 {
-			font-size: clamp(2rem, 4vw, 3rem);
-			font-weight: 700;
+			font-size: clamp(2.25rem, 5vw, 3rem);
+			font-weight: 600;
 			line-height: 1.1;
-			letter-spacing: var(--sl-letter-spacing, -0.03em);
+			letter-spacing: var(--sl-letter-spacing, -0.025em);
+			text-wrap: balance;
 		}
 
 		.tagline {
 			font-size: 1.125rem;
+			line-height: 1.6;
 			color: var(--muted-foreground);
-			max-width: 40ch;
+			max-width: 42rem;
+			text-wrap: balance;
 		}
 
 		.actions {
@@ -134,6 +184,47 @@ const normalizeVariant = (variant?: string) => {
 			font-size: 0.875rem;
 			text-decoration: none;
 			transition: filter 0.15s ease;
+		}
+
+		/* shadcn `<Badge variant="secondary">` as a link. */
+		.announcement {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.375rem;
+			align-self: flex-start;
+			height: 1.75rem;
+			padding-inline: 0.75rem;
+			border-radius: 9999px;
+			background-color: var(--secondary);
+			color: var(--secondary-foreground);
+			font-size: 0.75rem;
+			font-weight: 500;
+			text-decoration: none;
+			transition: background-color 0.15s ease;
+		}
+
+		.hero:not([data-has-image]) .announcement {
+			align-self: center;
+		}
+
+		.announcement:hover {
+			background-color: var(--accent);
+			color: var(--accent-foreground);
+		}
+
+		.announcement:focus-visible {
+			outline: 2px solid var(--ring);
+			outline-offset: 2px;
+		}
+
+		.announcement .icon {
+			width: 0.875rem;
+			height: 0.875rem;
+		}
+
+		.actions a:active,
+		.announcement:active {
+			transform: translateY(1px);
 		}
 
 		.hero-image :global(img) {

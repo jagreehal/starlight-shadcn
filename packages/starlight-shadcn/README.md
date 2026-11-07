@@ -1,6 +1,6 @@
 # starlight-shadcn
 
-A complete [Starlight](https://starlight.astro.build) theme by **[jagreehal](https://github.com/jagreehal)** — [shadcn/ui](https://ui.shadcn.com) design tokens + [React Aria](https://react-spectrum.adobe.com/react-aria/) on **Astro 7**.
+A complete [Starlight](https://starlight.astro.build) theme by **[jagreehal](https://github.com/jagreehal)**: [shadcn/ui](https://ui.shadcn.com) design tokens + [React Aria](https://react-spectrum.adobe.com/react-aria/) on **Astro 7**.
 
 Overrides **all 28** overridable Starlight components.
 
@@ -27,7 +27,7 @@ export default defineConfig({
 
 ## Bring your own palette
 
-The theme defines **no** colour tokens. It maps whatever you define onto Starlight's `--sl-*` variables, so the palette is entirely yours — paste any theme from [ui.shadcn.com/create](https://ui.shadcn.com/create) into your `global.css` exactly as generated:
+The theme defines **no** colour tokens. It maps whatever you define onto Starlight's `--sl-*` variables, so the palette is entirely yours. Paste any theme from [ui.shadcn.com/create](https://ui.shadcn.com/create) into your `global.css` exactly as generated:
 
 ```css
 @custom-variant dark (&:is(.dark *));
@@ -54,7 +54,7 @@ Starlight spaces prose with a *descendant* selector:
 ```
 
 Because it matches at any depth, every child after the first inside a container
-you wrote picks up a top margin — which silently breaks flex and grid rows and
+you wrote picks up a top margin, which silently breaks flex and grid rows and
 leads to hand-written `.my-row > * { margin-top: 0 }` patches.
 
 This theme clears it for flex and grid containers, which space themselves with
@@ -67,7 +67,7 @@ This theme clears it for flex and grid containers, which space themselves with
 </div>
 ```
 
-Normal prose spacing is untouched — a plain `<div>` still gets the rhythm. For a
+Normal prose spacing is untouched: a plain `<div>` still gets the rhythm. For a
 container styled without Tailwind's display utilities, Starlight's own
 `class="not-content"` escape hatch still works.
 
@@ -81,6 +81,7 @@ container styled without Tailwind's display utilities, Starlight's own
 | `clerkToc` | `boolean` | `true` | Clerk-style SVG track on the desktop table of contents. |
 | `pageActions` | `boolean \| { markdownUrl?: string }` | `true` | Copy Markdown + Open in ChatGPT/Claude/Cursor beside the page title. Copy works from the page body; `{ markdownUrl }` adds View as Markdown. |
 | `fonts` | `boolean` | `true` | Inject Geist Sans + Geist Mono as `--font-geist` / `--font-geist-mono` fallbacks. Pasted `--font-sans` always wins. |
+| `viewTransitions` | `boolean` | `false` | Animate page navigation with the browser's cross-document view transitions. |
 | `palettes` | `{ value, label }[]` | `[]` | Extra palettes offered beside the light/dark toggle. |
 | `navLinks` | `{ label, href, activeMatch?, translations? }[]` | `[]` | Top-level links beside the site title. |
 
@@ -96,9 +97,9 @@ See the [Plugin API reference](https://jagreehal.github.io/starlight-shadcn/refe
 
 Strings the theme adds beyond Starlight's own are prefixed `starlightShadcn.` and translate like any [Starlight UI string](https://starlight.astro.build/guides/i18n/#translate-starlights-ui). Only English ships; untranslated locales fall back to it.
 
-## Hero button variants
+## Hero button variants and announcement
 
-Extend the docs schema to use shadcn button variants in splash-page hero actions:
+Extend the docs schema to use shadcn button variants in splash-page hero actions, and an optional announcement pill above the title:
 
 ```ts
 // src/content.config.ts
@@ -112,6 +113,9 @@ export const collections = {
 
 ```yaml
 hero:
+  announcement:
+    text: v0.2 is out
+    link: /changelog/
   actions:
     - text: Get Started
       link: /guides/getting-started/

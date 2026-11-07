@@ -119,6 +119,7 @@ const plugin = (userConfig: StarlightShadcnUserConfig = {}): StarlightPlugin =>
 						'starlight-shadcn/styles/theme',
 						'starlight-shadcn/styles/base',
 						'starlight-shadcn/styles/components',
+						...(pluginConfig.viewTransitions ? ['starlight-shadcn/styles/view-transitions'] : []),
 					],
 				});
 			},

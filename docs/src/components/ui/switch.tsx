@@ -6,7 +6,7 @@ import {
   type SwitchFieldProps,
 } from "react-aria-components"
 
-import { cn } from "@/lib/utils"
+import { cn } from "cn"
 
 /*
  * `SwitchField` + `SwitchButton`, not the bare `Switch` — react-aria-components

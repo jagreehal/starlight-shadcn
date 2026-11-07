@@ -47,10 +47,6 @@ Use shadcn components as React islands anywhere in your MDX content.
 
 The docs now include a curated quality-first set of shadcn React Aria components (`input`, `textarea`, `checkbox`, `switch`, `select`, `dialog`, `popover`, `tooltip`, `tabs`) so you can compose richer flows without importing the full registry at once.
 
-### Theme presets
-
-Use the header selector to switch between `Default`, `Sunset`, and `Forest` presets. The presets intentionally remap only emphasis tokens (`--primary`, `--accent`, `--ring`, and sidebar emphasis) so component shape and spacing stay stable while mood changes.
-
 ### Form controls
 
 <Preview code={formControlsDemoSource} lang="tsx">
@@ -81,6 +77,6 @@ If you want full registry coverage later, treat it as a gated follow-up:
 
 1. Run `pnpm dlx shadcn@latest add --all --yes`.
 2. Keep docs navigation curated (do not expose every generated component page immediately).
-3. Promote components into docs only after parity QA in `astro-default` preset plus light/dark/mobile checks.
+3. Promote components into docs only after parity QA in light/dark/mobile checks.
 
-These components use [React Aria](https://react-spectrum.adobe.com/react-aria/) primitives with shadcn styling — the same stack from `pnpm dlx shadcn@latest init --base aria --template astro`.
+These components use [React Aria](https://react-spectrum.adobe.com/react-aria/) primitives with shadcn styling, the same stack from `pnpm dlx shadcn@latest init --base aria --template astro`.

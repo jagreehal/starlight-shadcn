@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Fail fast instead of GitHub's 6-hour default.
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -92,6 +94,7 @@ jobs:
   # would find no snapshot for its platform and write one instead of comparing.
   visual:
     runs-on: macos-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 

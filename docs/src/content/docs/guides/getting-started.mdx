@@ -73,11 +73,11 @@ Verify:
 
 ## 4) Add or customize tokens
 
-The theme has no theming API of its own — it reads the standard shadcn CSS variables. Paste a palette from any generator that exports them into `global.css`:
+The theme has no theming API of its own. It reads the standard shadcn CSS variables. Paste a palette from any generator that exports them into `global.css`:
 
-- [shadcn/create](https://ui.shadcn.com/create?base=aria) — canonical
-- [tweakcn](https://tweakcn.com/) — visual editor with a large preset catalogue
-- [shadcn.studio](https://www.shadcn.studio/) — theme browser
+- [shadcn/create](https://ui.shadcn.com/create?base=aria): canonical
+- [tweakcn](https://tweakcn.com/): visual editor with a large preset catalogue
+- [shadcn.studio](https://www.shadcn.studio/): theme browser
 
 ```css
 @custom-variant dark (&:is(.dark *));
@@ -136,7 +136,7 @@ This adds hero variants: `default`, `secondary`, `outline`, `ghost`, `destructiv
 
 ### Page is transparent with black text after pasting a theme
 
-Your tokens are bare channel triples (`--background: 0 0% 100%`), the Tailwind v3 convention. Wrap each value in a colour function — `hsl(0 0% 100%)`. See [Theming](/starlight-shadcn/guides/theming/#colour-format).
+Your tokens are bare channel triples (`--background: 0 0% 100%`), the Tailwind v3 convention. Wrap each value in a colour function, e.g. `hsl(0 0% 100%)`. See [Theming](/starlight-shadcn/guides/theming/#colour-format).
 
 ### Search says it is unavailable
 

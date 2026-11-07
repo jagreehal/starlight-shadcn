@@ -63,6 +63,7 @@ starlight({
 | `clerkToc` | `boolean` | `true` | Clerk-style SVG track on the desktop table of contents |
 | `pageActions` | `boolean \| { markdownUrl?: string }` | `true` | Copy Markdown + Open in ChatGPT/Claude/Cursor beside the page title |
 | `fonts` | `boolean` | `true` | Inject Geist Sans + Geist Mono as `--font-geist` / `--font-geist-mono` fallbacks |
+| `viewTransitions` | `boolean` | `false` | Animate page navigation with the browser's view transitions |
 | `palettes` | `{ value, label }[]` | `[]` | Extra palettes offered beside the light/dark toggle |
 | `navLinks` | `{ label, href, activeMatch?, translations? }[]` | `[]` | Top-level links beside the site title |
 
@@ -79,9 +80,19 @@ starlightShadcn({
 });
 ```
 
-- **`href`** — root-relative hrefs get the site `base` prepended for you, so `/guides/` works on a project page without hardcoding the repo name. Absolute URLs are left alone.
-- **`activeMatch`** — path prefix that marks the link active. A nav link usually points at a landing page *inside* the section it stands for, so without this nothing is highlighted while the reader browses the rest of that section. Defaults to `href`.
-- **`translations`** — per-locale label overrides, keyed by locale like Starlight's sidebar: `translations: { fr: 'Guides' }`. `href` is not localised; use an absolute path per locale if you need that.
+- **`href`**: root-relative hrefs get the site `base` prepended for you, so `/guides/` works on a project page without hardcoding the repo name. Absolute URLs are left alone.
+- **`activeMatch`**: path prefix that marks the link active. A nav link usually points at a landing page *inside* the section it stands for, so without this nothing is highlighted while the reader browses the rest of that section. Defaults to `href`.
+- **`translations`**: per-locale label overrides, keyed by locale like Starlight's sidebar: `translations: { fr: 'Guides' }`. `href` is not localised; use an absolute path per locale if you need that.
+
+### View transitions
+
+```js
+starlightShadcn({ viewTransitions: true });
+```
+
+Turns on the browser's cross-document [view transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#basic_mpa_view_transition): the header and desktop sidebar hold still while the page content fades out and rises in. It is CSS only. Every navigation is still a full page load, so Starlight's scripts and the theme's run as usual, which is why this doesn't use Astro's `<ClientRouter />` (Starlight doesn't support it). Browsers without support navigate as normal, and `prefers-reduced-motion` turns the animation off.
+
+To animate one of your own elements between pages, give it the same `view-transition-name` on both.
 
 ### Palettes
 
@@ -102,7 +113,7 @@ The selection persists in `localStorage`; a stored value you later remove from `
 
 ### Fonts
 
-By default the plugin injects **Geist Sans** and **Geist Mono** (via Fontsource CSS) as `--font-geist` / `--font-geist-mono`. They are **fallbacks only** — a pasted `--font-sans` or `--font-mono` from [shadcn/create](https://ui.shadcn.com/create) or [tweakcn](https://tweakcn.com/) always wins.
+By default the plugin injects **Geist Sans** and **Geist Mono** (via Fontsource CSS) as `--font-geist` / `--font-geist-mono`. They are **fallbacks only**: a pasted `--font-sans` or `--font-mono` from [shadcn/create](https://ui.shadcn.com/create) or [tweakcn](https://tweakcn.com/) always wins.
 
 ```js
 starlightShadcn(); // Geist Sans + Geist Mono
@@ -138,11 +149,23 @@ import { ExtendDocsSchema } from 'starlight-shadcn/schema';
 docsSchema({ extend: ExtendDocsSchema });
 ```
 
-Adds shadcn button `variant` values to hero actions: `default`, `secondary`, `outline`, `ghost`, `destructive`, `link`, plus Starlight aliases `primary` and `minimal`.
+Adds two hero fields:
+
+- `actions[].variant`: shadcn button variants: `default`, `secondary`, `outline`, `ghost`, `destructive`, `link`, plus Starlight aliases `primary` and `minimal`.
+- `announcement`: a pill link above the hero title, for a release note or headline link.
+
+```yaml
+hero:
+  announcement:
+    text: v0.2 is out
+    link: /changelog/
+```
+
+Without the schema extension, Starlight fails the build on any variant beyond `primary`, `secondary` and `minimal`, and silently drops `announcement`: no pill renders and nothing warns.
 
 ## Translating the theme's own UI
 
-Every string the theme adds beyond Starlight's own is prefixed `starlightShadcn.` and translated the same way as [Starlight's built-in UI strings](https://starlight.astro.build/guides/i18n/#translate-starlights-ui) — add the keys to `src/content/i18n/<lang>.json`. Only English ships, so any locale you don't translate falls back to it.
+Every string the theme adds beyond Starlight's own is prefixed `starlightShadcn.` and translated the same way as [Starlight's built-in UI strings](https://starlight.astro.build/guides/i18n/#translate-starlights-ui): add the keys to `src/content/i18n/<lang>.json`. Only English ships, so any locale you don't translate falls back to it.
 
 `starlightShadcn.headerNav`, `.collapseSidebar`, `.expandSidebar`, `.paletteSelect`, `.paletteDefault`, `.copyMarkdown`, `.copyMarkdownSuccess`, `.copyMarkdownFailed`, `.copyMarkdownFailedStatus`, `.open`, `.openInGitHub`, `.viewAsMarkdown`, `.openInChatGPT`, `.openInClaude`, `.openInCursor`.
 
@@ -156,10 +179,10 @@ Every string the theme adds beyond Starlight's own is prefixed `starlightShadcn.
 
 The plugin injects four stylesheets:
 
-1. `styles/layers` — layer ordering
-2. `styles/theme` — shadcn → Starlight token bridge
-3. `styles/base` — layout and prose tweaks
-4. `styles/components` — per-component polish
+1. `styles/layers`: layer ordering
+2. `styles/theme`: shadcn → Starlight token bridge
+3. `styles/base`: layout and prose tweaks
+4. `styles/components`: per-component polish
 
 Your site must include shadcn `global.css` via Starlight `customCss`. That file is the only theming API: the plugin's own values live in `@layer starlight-shadcn`, and your unlayered `:root` block overrides them, so any generator exporting standard shadcn CSS variables works without configuration. See [Theming](/starlight-shadcn/guides/theming/).
 

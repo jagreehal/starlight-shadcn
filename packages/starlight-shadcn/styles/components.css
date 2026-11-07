@@ -140,8 +140,38 @@
 		outline-color: var(--sidebar-ring, var(--ring, var(--primary)));
 	}
 
-	.sidebar-content a[aria-current='page'] {
+	/* Current page uses `--sidebar-accent` and `font-medium`, as shadcn's
+	   `SidebarMenuButton` does for `data-active`. */
+	.sidebar-content a[aria-current='page'],
+	.sidebar-content a[aria-current='page']:is(:hover, :focus) {
 		border-radius: calc(var(--radius) - 4px);
+		background-color: var(--sidebar-accent, var(--muted));
+		color: var(--sidebar-accent-foreground, var(--foreground));
+		font-weight: 500;
+	}
+
+	/* Group labels are small, muted captions. */
+	.sidebar-content .group-label .large {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--sl-color-gray-3);
+	}
+
+	.sidebar-content summary {
+		padding-block: 0.25rem;
+	}
+
+	.sidebar-content a {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	/* First-level items sit flush under their group label; deeper levels keep
+	   the hairline rail. */
+	.sidebar-content .top-level > li > details > ul > li {
+		margin-inline-start: 0;
+		border-inline-start: 0;
+		padding-inline-start: 0;
 	}
 
 	/* Language select uses MenuSelect; keep host alignment with header controls. */
@@ -225,7 +255,11 @@
 	starlight-toc nav h2,
 	mobile-starlight-toc summary {
 		color: var(--foreground);
-		font-weight: 600;
+		font-weight: 500;
+	}
+
+	starlight-toc nav h2 {
+		font-size: 0.875rem;
 	}
 
 	starlight-toc a,
@@ -236,7 +270,8 @@
 		   indent (`calc(1rem * var(--depth) + var(--pad-inline))`), so a `padding`
 		   shorthand here flattens every h3 onto the h2 rail and leaves the clerk
 		   track stepping against text that never moves. */
-		padding-block: 0.125rem;
+		/* 24px rows meet WCAG 2.5.8's minimum target size. */
+		padding-block: 0.25rem;
 	}
 
 	starlight-toc a:hover,
@@ -315,9 +350,24 @@
 	 * only the geometry Starlight hard-codes is restated here: square corners,
 	 * pill buttons, oversized padding, mono badges.
 	 */
-	/* Asides are left untouched. Rounding a box whose accent is a 4px
-	   `border-inline-start` bends that stripe into a fingernail at both ends —
-	   Starlight's square corners keep it a straight rule. */
+	/* Asides as shadcn `<Alert>`: card surface, a border tinted with the
+	   variant hue, colour on the icon and title. The uniform `border` replaces
+	   Starlight's 4px stripe so the corners can round. */
+	.starlight-aside {
+		padding: 0.875rem 1rem;
+		border: 1px solid color-mix(in oklab, var(--sl-color-asides-border) 30%, var(--border));
+		border-radius: var(--radius);
+		background-color: var(--card);
+		color: var(--card-foreground);
+	}
+
+	.starlight-aside__title {
+		font-weight: 500;
+	}
+
+	.starlight-aside__content {
+		color: var(--muted-foreground);
+	}
 
 	.sl-badge {
 		border-radius: calc(var(--radius) - 4px);

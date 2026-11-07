@@ -1,30 +1,81 @@
 ---
 title: starlight-shadcn
-description: A complete Starlight theme by jagreehal — shadcn/ui aria-vega tokens + React Aria on Astro 7.
+description: A Starlight theme that runs on your shadcn/ui tokens, with React Aria components in MDX. By jagreehal.
 template: splash
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 hero:
-  tagline: Every one of Starlight's 28 overridable components, restyled with shadcn/ui aria-vega tokens and React Aria. By jagreehal.
+  announcement:
+    text: Open source, MIT licensed
+    link: https://github.com/jagreehal/starlight-shadcn
+  title: Your shadcn theme, on Starlight.
+  tagline: Paste a palette from shadcn/create or tweakcn. Your whole Starlight site follows, from the header to all 28 components.
+  image:
+    dark: ../../assets/hero-dark.png
+    light: ../../assets/hero-light.png
+    alt: The Kitchen Sink page rendered with starlight-shadcn, showing the sidebar, page actions, table of contents and asides.
   actions:
     - text: Get Started
       link: /starlight-shadcn/guides/getting-started/
       icon: right-arrow
       variant: default
-    - text: All Overrides
+    - text: See every override
       link: /starlight-shadcn/showcase/overrides/
       variant: outline
-    - text: GitHub
-      link: https://github.com/jagreehal/starlight-shadcn
-      variant: ghost
 ---
 
-**28 component overrides** — header, sidebar, search, hero, footer, TOC, and more.
+import { Icon } from '@astrojs/starlight/components';
 
-**Bring your own shadcn tokens** — `--background`, `--primary`, `--sidebar-*` mapped onto Starlight's `--sl-*` variables. Paste a palette from shadcn/create, tweakcn or shadcn.studio and the whole site follows.
+export const features = [
+	{
+		icon: 'pencil',
+		title: 'Your tokens, no new API',
+		body: <><code class="font-mono text-[0.8125rem] text-foreground whitespace-nowrap">--background</code>, <code class="font-mono text-[0.8125rem] text-foreground whitespace-nowrap">--primary</code> and <code class="font-mono text-[0.8125rem] text-foreground whitespace-nowrap">--sidebar-*</code> map onto Starlight's own variables. Paste what your generator exports and you're done.</>,
+	},
+	{
+		icon: 'puzzle',
+		title: 'Every component restyled',
+		body: <>All 28 overridable Starlight components, so nothing falls back to the stock look. Opt out of any of them with <code class="font-mono text-[0.8125rem] text-foreground whitespace-nowrap">overrides</code>.</>,
+	},
+	{
+		icon: 'rocket',
+		title: 'shadcn components in MDX',
+		body: 'React Aria shadcn components render in your pages as islands, on the same tokens as the header and sidebar around them.',
+	},
+	{
+		icon: 'open-book',
+		title: 'Docs features built in',
+		body: 'A collapsible sidebar, a table of contents that tracks your scroll, and Copy Markdown or Open in Claude on every page.',
+	},
+];
 
-**React Aria islands** — drop shadcn components into MDX via `@astrojs/react`.
+<div class="not-content grid gap-x-12 gap-y-10 py-4 sm:grid-cols-2">
+	{features.map(({ icon, title, body }) => (
+		<div class="flex gap-4">
+			<span class="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
+				<Icon name={icon} size="1.125rem" />
+			</span>
+			<div class="flex flex-col gap-1.5">
+				<h2 class="text-base font-medium text-foreground">{title}</h2>
+				<p class="text-sm leading-relaxed text-muted-foreground">{body}</p>
+			</div>
+		</div>
+	))}
+</div>
+
+## Install
 
 ```bash
 pnpm add @astrojs/starlight starlight-shadcn @astrojs/react
 ```
 
-Browse the [showcase](/starlight-shadcn/showcase/overrides/) or read the [plugin API](/starlight-shadcn/reference/plugin-api/).
+```js title="astro.config.mjs"
+starlight({
+	customCss: ['./src/styles/global.css'],
+	plugins: [starlightShadcn()],
+});
+```
+
+Then paste your palette into `global.css`. The [Getting Started](/starlight-shadcn/guides/getting-started/) guide covers each step.

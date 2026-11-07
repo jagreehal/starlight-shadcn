@@ -1,6 +1,6 @@
 # starlight-shadcn
 
-A complete [Starlight](https://starlight.astro.build) theme by **[jagreehal](https://github.com/jagreehal)** — shadcn/ui **aria-vega** tokens + [React Aria](https://react-spectrum.adobe.com/react-aria/) on **Astro 7**.
+A complete [Starlight](https://starlight.astro.build) theme by **[jagreehal](https://github.com/jagreehal)**: shadcn/ui **aria-vega** tokens + [React Aria](https://react-spectrum.adobe.com/react-aria/) on **Astro 7**.
 
 Overrides **all 28** overridable Starlight components.
 

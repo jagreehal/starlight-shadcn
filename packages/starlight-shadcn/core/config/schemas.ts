@@ -80,6 +80,12 @@ export const StarlightShadcnConfigSchema = z.object({
 		.describe(
 			'Inject Geist Sans + Geist Mono as `--font-geist` / `--font-geist-mono` fallbacks via Fontsource CSS. A pasted `--font-sans` from shadcn/create or tweakcn always wins. Set `false` if you ship faces yourself.',
 		),
+	viewTransitions: z
+		.boolean()
+		.default(false)
+		.describe(
+			'Animate page navigation with the browser’s cross-document view transitions (CSS only, no client router): the header and sidebar hold still while the content fades in. Unsupported browsers navigate as normal; reduced motion turns it off.',
+		),
 });
 
 export type StarlightShadcnUserConfig = z.input<typeof StarlightShadcnConfigSchema>;
