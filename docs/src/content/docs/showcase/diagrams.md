@@ -31,10 +31,6 @@ sequenceDiagram
 
 ## How it works
 
-A remark plugin rewrites the fence into a `<mermaid-diagram>` element before Expressive Code claims it, so the block never becomes a code frame. A custom element then renders it with `mermaid.initialize({ theme: 'base', themeVariables })`, reading `--primary`, `--muted`, `--border` and `--foreground` off the document.
+Expressive Code renders the fence as a code block. On the page, the theme reads each `mermaid` block, renders it with `mermaid.initialize({ theme: 'base', themeVariables })` using `--primary`, `--muted`, `--border` and `--foreground`, and swaps the diagram in. Toggling light or dark renders it again.
 
-`mermaid` is an **optional** peer dependency. Without it installed, the diagram source stays visible as a plain code block rather than breaking the page. Opt out entirely with:
-
-```js
-starlightShadcn({ mermaid: false });
-```
+`mermaid` is an **optional** peer dependency. Leave it uninstalled and the source stays visible as a plain code block.

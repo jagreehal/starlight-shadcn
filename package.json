@@ -29,11 +29,12 @@
     "test": "pnpm --filter starlight-shadcn-docs test",
     "test:visual": "pnpm --filter starlight-shadcn-docs test:visual",
     "test:update": "pnpm --filter starlight-shadcn-docs test:update",
-    "test:install": "pnpm --filter starlight-shadcn-docs test:install"
+    "test:install": "pnpm --filter starlight-shadcn-docs test:install",
+    "hero:capture": "pnpm --filter starlight-shadcn-docs hero:capture"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.1",
-    "typescript": "~6"
+    "@changesets/cli": "^3.0.3",
+    "typescript": "~6.0.3"
   },
   "engines": {
     "node": ">=22.12.0"

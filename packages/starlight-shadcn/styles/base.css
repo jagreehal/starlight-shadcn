@@ -45,9 +45,34 @@
 		filter: brightness(0.96);
 	}
 
+	/* shadcn docs: 15px prose, `font-medium` headings. */
+	@media (min-width: 50rem) {
+		.sl-markdown-content {
+			font-size: 0.9375rem;
+		}
+	}
+
 	.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
-		font-weight: 600;
+		font-weight: 500;
 		letter-spacing: var(--sl-letter-spacing, -0.02em);
+	}
+
+	.sl-markdown-content h1 {
+		font-weight: 600;
+	}
+
+	/* More space above h2 than h3/h4. Starlight wraps anchored headings in
+	   `.sl-heading-wrapper`, so both shapes are matched. */
+	.sl-markdown-content
+		:not(h1, h2, h3, h4, h5, h6, .sl-heading-wrapper)
+		+ :is(h2, .sl-heading-wrapper.level-h2) {
+		margin-top: 2.5rem;
+	}
+
+	.sl-markdown-content
+		:not(h1, h2, h3, h4, h5, h6, .sl-heading-wrapper)
+		+ :is(h3, h4, .sl-heading-wrapper.level-h3, .sl-heading-wrapper.level-h4) {
+		margin-top: 1.75rem;
 	}
 
 	/* Tailwind preflight resets `text-decoration` and list markers — restore both

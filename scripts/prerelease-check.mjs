@@ -63,13 +63,17 @@ check('override styles are layered', () =>
 );
 
 /*
- * Rounding a box whose accent is a 4px `border-inline-start` bends that stripe
- * into a fingernail at both ends. Starlight's asides are square for a reason.
+ * Rounded corners bend a 4px `border-inline-start` stripe at both ends, so an
+ * aside rule that sets `border-radius` must also set a uniform `border`.
  */
 check('no border-radius on asides (fingernail)', () =>
 	themeSources
-		.filter((f) => /\.starlight-aside\b[^{]*\{[^}]*border-radius/.test(read(f)))
-		.map((f) => `${f} — asides must keep square corners`)
+		.filter((f) =>
+			[...read(f).matchAll(/\.starlight-aside\b[^{]*\{([^}]*)\}/g)].some(
+				([, body]) => /border-radius/.test(body) && !/(^|[\s;])border\s*:/.test(body),
+			),
+		)
+		.map((f) => `${f} — round an aside only in a rule that also resets its stripe with \`border:\``)
 );
 
 /*

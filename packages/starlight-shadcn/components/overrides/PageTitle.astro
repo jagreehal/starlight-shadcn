@@ -44,10 +44,10 @@ const { description } = entry.data;
 		}
 
 		.shadcn-page-title :global(h1) {
-			font-size: clamp(1.75rem, 3vw, 2.25rem);
-			font-weight: 700;
-			letter-spacing: var(--sl-letter-spacing, -0.03em);
-			line-height: 1.15;
+			font-size: var(--sl-text-h1);
+			font-weight: 600;
+			letter-spacing: var(--sl-letter-spacing, -0.025em);
+			line-height: 1.2;
 			color: var(--foreground);
 		}
 
@@ -57,6 +57,26 @@ const { description } = entry.data;
 			font-size: 1rem;
 			line-height: 1.6;
 			text-wrap: balance;
+		}
+
+		/* Mobile order: title, description, then page actions. */
+		@media (max-width: 49.99rem) {
+			.page-title-header {
+				display: contents;
+			}
+
+			.page-title-heading {
+				order: 1;
+			}
+
+			.page-description {
+				order: 2;
+			}
+
+			.page-title-header > :global(.shadcn-page-actions) {
+				order: 3;
+				margin-top: 0.25rem;
+			}
 		}
 	}
 </style>

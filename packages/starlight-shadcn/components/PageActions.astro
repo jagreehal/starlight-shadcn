@@ -258,6 +258,15 @@ const openLinks = [
 			background-color: var(--muted);
 		}
 
+		/* shadcn `size="sm"` on narrow screens. */
+		@media (max-width: 49.99rem) {
+			.page-action-btn {
+				height: 1.75rem;
+				padding-inline: 0.625rem;
+				font-size: 0.75rem;
+			}
+		}
+
 		.page-action-btn:disabled {
 			opacity: 0.6;
 			cursor: wait;

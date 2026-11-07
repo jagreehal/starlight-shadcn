@@ -5,7 +5,7 @@ description: Paste CSS variables from any shadcn theme generator and restyle the
 
 import { Aside, Badge, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-This theme has no theming API of its own. It reads the standard shadcn CSS variables, so **anything that exports them works** — including generators the shadcn team and community already use.
+This theme has no theming API of its own. It reads the standard shadcn CSS variables, so **anything that exports them works**, including generators the shadcn team and community already use.
 
 <CardGrid>
   <LinkCard
@@ -31,14 +31,14 @@ This theme has no theming API of its own. It reads the standard shadcn CSS varia
 
 1. Generate a theme in any of the tools above and copy its CSS.
 
-2. Replace the `:root` and `.dark` token blocks in `src/styles/global.css`. Leave the `@import` lines and the `@theme inline` block alone — those map tokens into Tailwind utilities and are not part of what generators emit.
+2. Replace the `:root` and `.dark` token blocks in `src/styles/global.css`. Leave the `@import` lines and the `@theme inline` block alone. Those map tokens into Tailwind utilities and are not part of what generators emit.
 
    ```css title="src/styles/global.css" {5,10}
    @import 'tailwindcss';
    @import 'shadcn/tailwind.css';
 
    @theme inline {
-     /* keep — maps tokens to bg-*, text-*, border-* utilities */
+     /* keep: maps tokens to bg-*, text-*, border-* utilities */
    }
 
    :root {
@@ -59,9 +59,34 @@ This theme has no theming API of its own. It reads the standard shadcn CSS varia
 No build step, no config, no restart. Your `:root` block is unlayered CSS; the theme's own defaults live in `@layer starlight-shadcn`. Unlayered declarations beat layered ones regardless of specificity, so pasted tokens always win.
 </Aside>
 
+### Or install it with the shadcn CLI
+
+tweakcn publishes each preset as a shadcn registry item, so the paste can be one command instead:
+
+```bash
+pnpm dlx shadcn@latest add https://tweakcn.com/r/themes/cyberpunk.json --yes
+```
+
+`--yes` is not optional in scripts: without it the CLI stops on *"You are about to install a new style. Existing CSS variables and components will be overwritten. Continue?"* and waits.
+
+The rewrite is surgical. It replaces the token values in `:root` and `.dark`, adds the theme's `--shadow-*` and `--tracking-*` families, and leaves `@theme inline`, `@layer base` and any extra selectors of your own in place. Three things to know before running it:
+
+- **It overwrites `--font-sans` and `--font-mono` inside `@theme inline`,** not just in `:root`. The plugin's Geist fallback chain is gone after the first run, so deleting the pasted font name later leaves you on the system stack rather than back on Geist. Keep a copy of that line, or re-add `var(--font-geist)` as the fallback:
+
+  ```css title="src/styles/global.css"
+  --font-sans: Outfit, var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  ```
+
+- **Comments stay where they are while the values under them change.** Any note you have written about a specific token (a contrast measurement, a reason for a tuned value) will end up describing a number that is no longer there.
+- **Nothing checks contrast.** Presets are designed for app chrome, not long-form prose, and some ship a `--muted-foreground` equal to `--foreground` (muted text stops reading as muted) or one that lands near 4.5:1 on the page ground. Check both themes after installing.
+
+<Aside type="tip">
+The manual paste in the steps above touches nothing but the token blocks. Prefer it when your `global.css` carries comments or fallbacks worth keeping; use the CLI for a fast look at a preset.
+</Aside>
+
 ## Token contract
 
-Starlight's chrome is built from its own `--sl-*` variables. The theme bridges these shadcn tokens onto them. Ship all of them — generators do by default.
+Starlight's chrome is built from its own `--sl-*` variables. The theme bridges these shadcn tokens onto them. Ship all of them; generators do by default.
 
 | Token | Drives |
 | --- | --- |
@@ -89,14 +114,14 @@ The sidebar honours the full `--sidebar-*` family, so a palette tuned in tweakcn
 | `sidebar-border` | Nesting guides and the pane edge |
 | `sidebar-ring` | Focus outlines inside the sidebar |
 
-Every one falls back to its general equivalent, so a theme that omits the family still renders correctly — the sidebar just shares the page ground. `--sidebar-background`, the pre-v4 name for `--sidebar`, is also accepted; shadcn.studio still exports it.
+Every one falls back to its general equivalent, so a theme that omits the family still renders correctly: the sidebar just shares the page ground. `--sidebar-background`, the pre-v4 name for `--sidebar`, is also accepted; shadcn.studio still exports it.
 
 ## Colour format
 
 Values must be **complete colours**, not the bare channel triples used by Tailwind v3:
 
 ```css
-/* Works — any CSS colour function */
+/* Works: any CSS colour function */
 --background: oklch(1 0 0);
 --background: hsl(0 0% 100%);
 
@@ -104,7 +129,7 @@ Values must be **complete colours**, not the bare channel triples used by Tailwi
 --background: 0 0% 100%;
 ```
 
-The v3 convention stored raw channels and wrapped them at the point of use (`hsl(var(--background))`). This theme reads `var(--background)` directly, as shadcn does under Tailwind v4. Paste bare triples and you get a transparent page with black text — every token resolves to a string that is not a colour.
+The v3 convention stored raw channels and wrapped them at the point of use (`hsl(var(--background))`). This theme reads `var(--background)` directly, as shadcn does under Tailwind v4. Paste bare triples and you get a transparent page with black text, because every token resolves to a string that is not a colour.
 
 If a generator hands you the v3 form, wrap each value in `hsl(…)`. OKLCH is preferred but nothing depends on it.
 
@@ -123,7 +148,7 @@ If a generator hands you the v3 form, wrap each value in `hsl(…)`. OKLCH is pr
 The plugin injects Geist Sans + Geist Mono as fallbacks (`--font-geist` / `--font-geist-mono`). Paste a `--font-sans` from a generator and it wins. See [Plugin API → Fonts](/starlight-shadcn/reference/plugin-api/#fonts) for `fonts: false` when you ship faces yourself.
 
 <Aside type="caution">
-Do not wire `--chart-*` into anything semantic. They are categorical series colours, and plenty of palettes — including this site's — ship them greyscale. An earlier version of this theme derived aside and badge colours from them, which flattened every callout to the same grey.
+Do not wire `--chart-*` into anything semantic. They are categorical series colours, and plenty of palettes (including this site's) ship them greyscale. An earlier version of this theme derived aside and badge colours from them, which flattened every callout to the same grey.
 </Aside>
 
 ## Aside and badge colours
@@ -149,7 +174,7 @@ Check these two pages in both light and dark:
 <CardGrid>
   <LinkCard
     title="Kitchen Sink"
-    description="Every Starlight component on one page — asides, cards, steps, tabs, file tree."
+    description="Every Starlight component on one page: asides, cards, steps, tabs, file tree."
     href="/starlight-shadcn/showcase/kitchen-sink/"
   />
   <LinkCard
@@ -164,10 +189,10 @@ Worth a specific look: the current-page sidebar item, focus rings (tab through t
 ## Known limits
 
 - **CSS variables are required.** Installing shadcn with `--no-css-variables` emits fixed colour utilities, which nothing can bridge. Keep `tailwind.cssVariables` set to `true`.
-- **Named fonts still need a face.** The plugin loads Geist Sans + Geist Mono as `--font-geist` / `--font-geist-mono` fallbacks. A pasted `--font-sans` always wins — but if that name is something other than Geist (e.g. Open Sans from a tweakcn preset), install `@fontsource/…` yourself (or set `fonts: false` and ship faces entirely). Otherwise the browser falls through to the system stack.
+- **Named fonts still need a face.** The plugin loads Geist Sans + Geist Mono as `--font-geist` / `--font-geist-mono` fallbacks. A pasted `--font-sans` always wins, but if that name is something other than Geist (e.g. Open Sans from a tweakcn preset), install `@fontsource/…` yourself (or set `fonts: false` and ship faces entirely). Otherwise the browser falls through to the system stack.
 - **Tailwind v4 only.** A v3 JavaScript config is not a token source.
 - **Extra tokens are mostly harmless.** Generators emit `--destructive-foreground`, chart colours, and more. Chart colours are unused by chrome on purpose. Shadow (`--shadow-*`) and tracking (`--tracking-*`) tokens *are* bridged when present.
 
 <Aside>
-Presets in the site header (`Azure`, `Sunset`, `Forest`, `Astro Default`) are a demo of token swapping, not a theming system. The Default (no palette) is the official shadcn/create `neutral` paste. For real theme browsing, use the generators above and paste the CSS.
+This site runs the official shadcn/create `neutral` paste. To let readers switch between several palettes at runtime, see the [`palettes` option](/starlight-shadcn/reference/plugin-api/#palettes). It is off by default, and for choosing *your* palette the generators above are the better tool.
 </Aside>

@@ -58,6 +58,28 @@
 
 		--sl-color-backdrop-overlay: color-mix(in oklab, var(--background) 80%, transparent);
 
+		/* Badges as shadcn `<Badge variant="outline">` with a faint hue tint.
+		   `-high` is Starlight's readable-text stop in both themes. Layer order
+		   lets this `:root` win over Starlight's light-theme block. */
+		--sl-badge-default-bg: var(--secondary);
+		--sl-badge-default-border: var(--border);
+		--sl-badge-default-text: var(--secondary-foreground);
+		--sl-badge-note-bg: color-mix(in oklab, var(--sl-color-blue) 12%, var(--background));
+		--sl-badge-note-border: color-mix(in oklab, var(--sl-color-blue) 35%, var(--border));
+		--sl-badge-note-text: var(--sl-color-blue-high);
+		--sl-badge-tip-bg: color-mix(in oklab, var(--sl-color-purple) 12%, var(--background));
+		--sl-badge-tip-border: color-mix(in oklab, var(--sl-color-purple) 35%, var(--border));
+		--sl-badge-tip-text: var(--sl-color-purple-high);
+		--sl-badge-success-bg: color-mix(in oklab, var(--sl-color-green) 12%, var(--background));
+		--sl-badge-success-border: color-mix(in oklab, var(--sl-color-green) 35%, var(--border));
+		--sl-badge-success-text: var(--sl-color-green-high);
+		--sl-badge-caution-bg: color-mix(in oklab, var(--sl-color-orange) 12%, var(--background));
+		--sl-badge-caution-border: color-mix(in oklab, var(--sl-color-orange) 35%, var(--border));
+		--sl-badge-caution-text: var(--sl-color-orange-high);
+		--sl-badge-danger-bg: color-mix(in oklab, var(--sl-color-red) 12%, var(--background));
+		--sl-badge-danger-border: color-mix(in oklab, var(--sl-color-red) 35%, var(--border));
+		--sl-badge-danger-text: var(--sl-color-red-high);
+
 		/* Starlight's shadows are opaque black; shadcn's are tinted and lighter.
 		   tweakcn/create may export `--shadow-*`; those win when present. */
 		--sl-shadow-sm: var(
@@ -90,7 +112,17 @@
 		);
 		--sl-letter-spacing: var(--tracking-tight, var(--tracking-normal, -0.02em));
 
-		--sl-content-width: 46rem;
+		/* shadcn docs type scale (text-3xl / xl / lg / base / sm). Prose, asides
+		   and the TOC heading all read these. Layer order wins over Starlight's
+		   breakpoint values, so one set covers every width. */
+		--sl-text-h1: 1.875rem;
+		--sl-text-h2: 1.25rem;
+		--sl-text-h3: 1.125rem;
+		--sl-text-h4: 1rem;
+		--sl-text-h5: 0.875rem;
+		--sl-line-height-headings: 1.4;
+
+		--sl-content-width: 42rem;
 		--sl-sidebar-width: 18rem;
 		--sl-nav-height: 3.5rem;
 		--sl-nav-pad-x: 1rem;
