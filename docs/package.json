@@ -44,7 +44,7 @@
     "@astrojs/check": "^0.9.12",
     "@emnapi/runtime": "^1.11.3",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "1.65.0",
+    "@playwright/test": "1.65.1",
     "@shadcn/lint": "0.2.5",
     "@shikijs/themes": "4.6.0",
     "eslint": "^10.14.0",
