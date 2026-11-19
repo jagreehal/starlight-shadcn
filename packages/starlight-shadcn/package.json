@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@astrojs/starlight": "^0.43.1",
-    "astro": "^7.4.7",
+    "astro": "^7.4.12",
     "mermaid": "12.3.0"
   },
   "engines": {
