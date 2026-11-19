@@ -60,8 +60,8 @@ importers:
         specifier: 4.23.0
         version: 4.23.0(supports-color@10.2.2)
       starlight-package-managers:
-        specifier: 0.13.0
-        version: 0.13.0(@astrojs/starlight@0.42.10(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))
+        specifier: 0.13.1
+        version: 0.13.1(@astrojs/starlight@0.42.10(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3))
       starlight-shadcn:
         specifier: workspace:*
         version: link:../packages/starlight-shadcn
@@ -627,10 +627,6 @@ packages:
   '@clack/prompts@1.8.1':
     resolution: {integrity: sha512-dlT1m5e/0yUL0kRNcQn7yGLVThkgbB0Ga/1AmfDDC/8ik6AIiSf2QLQO2zPYvefsHP0aFgxO93cVLCCfDp7kzQ==}
     engines: {node: '>= 20.12.0'}
-
-  '@ctrl/tinycolor@4.2.2':
-    resolution: {integrity: sha512-9rQHijqB2Rq6qOEC/xHaA6aPlsKGi5kmCQW50O1asn9g63XFeD5NmBwysriistW5Xx0JPafyD/TA7yk2S3pXGQ==}
-    engines: {node: '>=14'}
 
   '@ctrl/tinycolor@4.3.0':
     resolution: {integrity: sha512-6V0+8vw/GmH92URQ/Ki12FPhoB3nqaQUJE+5xgbFbB5ok0OXYK5jCQsQQoyR3BzCddHsCpyCFRnIcI1PSOVYkQ==}
@@ -3734,6 +3730,7 @@ packages:
   postcss-selector-parser@7.2.0:
     resolution: {integrity: sha512-Khh/tERVBn0I1499dvBSHY0pWJloMJWUxDsOBM0CCDPAcVZ10Jl2L1qy1f19uEX22spa8Mv7DCdEQJc0cGwBhQ==}
     engines: {node: '>=4'}
+    deprecated: Double-escapes CSS Modules class names (#362). Use 7.2.1.
 
   postcss@8.5.32:
     resolution: {integrity: sha512-LJlKCCAUFKOuZxipUdYw1NzIITEsPcgyOG9LkvRJvuKj/bRzbuRY0ARXvL0pWGpsZvn8jku+LMep2eU0seHp8g==}
@@ -4054,8 +4051,8 @@ packages:
       '@astrojs/starlight': '>=0.42.0'
       astro: '>=7.2.10'
 
-  starlight-package-managers@0.13.0:
-    resolution: {integrity: sha512-Jcvx7oLA2hWlNMsYI42Ny5vZ0lZov18M/0+aiXmY59Wo+GmhTjJPRpGEbIN0yJsGLoJPFTegcMArjNVU0SvROQ==}
+  starlight-package-managers@0.13.1:
+    resolution: {integrity: sha512-lD3hp+RBetHDWtOLa/rgG2cyLY4qV0GAWMl59hn++HkagcnFIkWT0oHsws2pMwBZHCO+iJ86jWRtSD4kfU6N3g==}
     peerDependencies:
       '@astrojs/starlight': '>=0.32.0'
 
@@ -4125,9 +4122,6 @@ packages:
     engines: {node: '>=10.0.0'}
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
-
-  tailwindcss@4.3.4:
-    resolution: {integrity: sha512-PCJZTFFdG+sL3gvnP1Do9o6GbkvH2q0p04xSs3f7cSvmAeK+sttG+/7ncK1fdRwKFfC7n+wDDJaOMBSefkI9ow==}
 
   tailwindcss@4.3.5:
     resolution: {integrity: sha512-FcQk9BuffmEHJP2G0XmB2SplU1aLTI7j07Kunk+U74Ny+XiWOtzXz9aujFZ/avntw1e2cOv/3PkgzflQ7gX2vQ==}
@@ -5239,8 +5233,6 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@ctrl/tinycolor@4.2.2': {}
-
   '@ctrl/tinycolor@4.3.0': {}
 
   '@dotenvx/dotenvx@1.75.1':
@@ -5467,7 +5459,7 @@ snapshots:
 
   '@expressive-code/core@0.41.7':
     dependencies:
-      '@ctrl/tinycolor': 4.2.2
+      '@ctrl/tinycolor': 4.3.0
       hast-util-select: 6.0.4
       hast-util-to-html: 9.0.6
       hast-util-to-text: 4.0.3
@@ -8870,7 +8862,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  starlight-package-managers@0.13.0(@astrojs/starlight@0.42.10(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3)):
+  starlight-package-managers@0.13.1(@astrojs/starlight@0.42.10(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3)):
     dependencies:
       '@astrojs/starlight': 0.42.10(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(supports-color@10.2.2)(typescript@6.0.3)
 
@@ -8938,8 +8930,6 @@ snapshots:
       sax: 1.6.1
 
   systeminformation@5.33.19: {}
-
-  tailwindcss@4.3.4: {}
 
   tailwindcss@4.3.5: {}
 
